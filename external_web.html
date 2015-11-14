@@ -1,0 +1,36 @@
+<html>
+<head>
+	<script type="text/javascript" src="http://127.0.0.1:3000/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+  message
+
+<script>
+	var socket_io = io.connect('http://127.0.0.1:3000/');
+
+  socket_io.on('connect', function(){
+		console.log("connected");
+		$('#chat_button').on("click", function(e){
+			console.log($('#chat_message').val());
+		  socket_io.emit('chat_msg', {name: $('#chat_message').val()});
+		  $('#chat_message').val('');
+		});
+
+    socket_io.on('test', function(data){
+      console.log("message from server = " + data);
+    }); 
+
+	});
+
+
+</script>
+
+<input type="text" id="chat_message" placeholder = "enter message">
+<input type="button" id="chat_button" value="send">
+
+
+
+
+</body>
+</html>
