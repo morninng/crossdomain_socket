@@ -1,0 +1,26 @@
+{
+  "name": "crossdomain_express",
+  "version": "1.0.0",
+  "description": "sample script to check whether socket is works with cross domain environment",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/morninng/crossdomain_socket.git"
+  },
+  "keywords": [
+    "takatori"
+  ],
+  "author": "moriyama",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/morninng/crossdomain_socket/issues"
+  },
+  "homepage": "https://github.com/morninng/crossdomain_socket#readme",
+  "dependencies": {
+    "express": "^4.13.3",
+    "socket.io": "^1.3.7"
+  }
+}
