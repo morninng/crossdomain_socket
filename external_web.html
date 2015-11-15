@@ -1,13 +1,13 @@
 <html>
 <head>
-	<script type="text/javascript" src="http://127.0.0.1:3000/socket.io.js"></script>
+	<script type="text/javascript" src="https://127.0.0.1:3000/socket.io.js"></script>
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 </head>
 <body>
   message
 
 <script>
-	var socket_io = io.connect('http://127.0.0.1:3000/');
+	var socket_io = io.connect('https://127.0.0.1:3000/');
 
   socket_io.on('connect', function(){
 		console.log("connected");
