@@ -1,0 +1,45 @@
+<html>
+<head>
+	<script type="text/javascript" src="https://127.0.0.1:3000/socket.io.js"></script>
+	<script src="https://127.0.0.1:3000/jquery.js"></script>
+</head>
+<body>
+
+
+
+<input type="file" id="input_files" name="files[]" multiple />
+
+
+<script>
+
+	var socket_io = io.connect('https://127.0.0.1:3000/');
+
+  socket_io.on('connect', function(){
+
+	  function handleFileSelect(evt){
+	  	var self = this;
+	  	var files = evt.target.files;
+	  	for (var i = 0, file; file = files[i]; i++) {
+	  		var reader = new FileReader();
+	  		reader.readAsArrayBuffer(file);
+	  		reader.onprogress = self.upload_file = function(e){
+			  	console.log("upload file called");
+			  	console.log(e.target.result);
+					socket_io.emit('file_upload', {filename:"aaa", buffer: e.target.result})
+			  }
+	  	}
+	  }
+
+  	document.getElementById('input_files').addEventListener('change', handleFileSelect, false);
+
+	});
+
+
+</script>
+
+
+
+
+</body>
+</html>
+
