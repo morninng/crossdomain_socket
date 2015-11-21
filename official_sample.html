@@ -13,6 +13,7 @@
 <br><br><br>
 
 <input type="button" id="startRecord" value="Start Recording">
+<input type="button" id="suspendRecord" value="SuspendRecording">
 <input type="button" id="stopRecord" value="Stop Recording">
 
 
@@ -28,27 +29,14 @@
 
   socket_io.on('connect', function(){
 
-	  function handleFileSelect(evt){
-	  	var self = this;
-	  	var files = evt.target.files;
-	  	for (var i = 0, file; file = files[i]; i++) {
-	  		var reader = new FileReader();
-	  		reader.readAsArrayBuffer(file);
-	  		reader.onprogress = self.upload_file = function(e){
-			  	console.log("upload file called");
-			  	console.log(e.target.result);
-					socket_io.emit('file_upload', {filename:"aaa", buffer: e.target.result})
-			  }
-	  	}
-	  }
 	  audio_record_obj.set_socket(socket_io);
-
-  	document.getElementById('input_files').addEventListener('click', handleFileSelect, false);
   	document.getElementById('startRecord').addEventListener('click', audio_record_obj.start_record, false);
+  	document.getElementById('suspendRecord').addEventListener('click', audio_record_obj.suspend_record, false);
   	document.getElementById('stopRecord').addEventListener('click', audio_record_obj.stop_record, false);
 
 	  socket_io.on('disconnect', function(){
 			audio_record_obj.set_socket(null);
+			audio_record_obj.disconnect();
 	  });
 
 	});

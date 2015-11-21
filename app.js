@@ -61,17 +61,11 @@ io.sockets.setMaxListeners(0);
 	    fs.writeFile('aaa.jpg', data.buffer);	  });
 */
 		socket.on('audio_record_start', function(data){
-/*
-			eval("if(!" + data.filename + "){"
-			 + "var" + data.filename + "=new wav.FileWriter(oufile, {channels: 1,sampleRate:" + data.sample_rate + ",bitDepth: 16});"
-			 + "}"
-			 );
-*/
 			console.log("audio record start");
-			var outfile  = "aaa.wav";
+			var outfile  = data.filename + "_aaa.wav";
 			var sample_rate = data.sample_rate || 44100;
-			if(!filewriter_aaa){
-				var filewriter_aaa = new wav.FileWriter(outfile, {
+			if(!self.filewriter_aaa){
+				self.filewriter_aaa = new wav.FileWriter(outfile, {
 						channels:1,
 						sampleRate:sample_rate,
 						bitDepth:16});
@@ -82,22 +76,23 @@ io.sockets.setMaxListeners(0);
 				});
 				myReadableStreamBuffer.setMaxListeners(Infinity);
 			}
-
-			ss(socket).on('audio_upload', function(stream, data){
-				console.log("audio upload called and it is piped to file writer");
-				//console.log(filewriter_aaa);
-		    //myReadableStreamBuffer.put(data.buffer);
-		    //data.buffer.pipe(filewriter_aaa);
-				stream.pipe(filewriter_aaa);
-		  });
-
-			socket.on('audio_record_end', function(data){
-				console.log("audio recording finished");
-				if(filewriter_aaa){
-		    	filewriter_aaa.end();
-		  	}
-		  });
 	  });
+
+		ss(socket).on('audio_upload', function(stream){
+			console.log("audio upload called and it is piped to file writer");
+			//console.log(filewriter_aaa);
+			//myReadableStreamBuffer.put(data.buffer);
+			//data.buffer.pipe(filewriter_aaa);
+			stream.pipe(self.filewriter_aaa);
+		});
+
+		socket.on('audio_record_end', function(data){
+			console.log("audio recording finished");
+			if(self.filewriter_aaa){
+				self.filewriter_aaa.end();
+				self.filewriter_aaa = null;
+			}
+		});
 	});
 
 }());

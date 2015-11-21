@@ -9,15 +9,33 @@ function Recording(){
 		console.log("start recording");
 		self.socket_io.emit('audio_record_start', {filename:"audio",sample_rate:self.sample_rate})
 		self.recording = true;
-		ss(self.socket_io).emit('audio_upload', self.stream, {name: 'aaa'});
+		self.stream = ss.createStream();
+		console.log("audio polling stream id " + self.stream.id)
+		ss(self.socket_io).emit('audio_upload', self.stream);
+	}
+
+	self.suspend_record = function(){
+		console.log("suspend recording");
+		if(self.stream){
+			self.recording = false;
+		}
 	}
 
 	self.stop_record = function(){
 		console.log("stop recording");
-		self.recording = false;
-		self.stream.end();
-		self.socket_io.emit('audio_record_end', {filename:"audio"})
+		if(self.stream){
+			self.recording = false;
+			self.stream.end();
+			self.stream = null;
+			self.socket_io.emit('audio_record_end', {filename:"audio"});
+		}
 	}
+
+	self.disconnect = function(){
+		self.stop_record();
+	}
+
+
 }
 
 Recording.prototype.initialize = function(){
@@ -52,8 +70,6 @@ Recording.prototype.start_audio_polling = function(stream){
 
 	var self = this;
 	self.available = true;
-	self.stream = ss.createStream();
-	console.log("audio polling stream id " + self.stream.id)
 
 	audioContext = window.AudioContext || window.webkitAudioContext;
 	context = new audioContext();
@@ -61,7 +77,6 @@ Recording.prototype.start_audio_polling = function(stream){
 	audioInput = context.createMediaStreamSource(stream);
 	var bufferSize = 4096;
 	
-	//self.recorder = context.createScriptProcessor(bufferSize, 1, 1);
 	self.scriptNode = context.createScriptProcessor(bufferSize, 1, 1);
 
 	self.scriptNode.onaudioprocess = function(audioProcessingEvent){
