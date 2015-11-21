@@ -78,6 +78,31 @@ u8[3] = 1;
 var ss_u8 = new ss.Buffer(u8);
 console.log(ss_u8);
 
+console.log("------");
+var u16 = new Uint16Array(6);
+u16[0] = 0xEEFF;
+u16[1] = 0xEEFF;
+u16[2] = 0xEEFF;
+u16[3] = 1;
+u16[4] = 2;
+u16[5] = 3;
+u16.buffer
+
+var unit8_buf = new Uint8Array(u16,0,12);
+var unit8_buf2 = new Uint8Array(u16,8,1);
+var unit8_buf3 = new Uint8Array(u16);
+console.log(unit8_buf);
+console.log(unit8_buf2);
+console.log(unit8_buf3);
+
+var unit8_buf4 = new Uint8Array(6);
+unit8_buf4.buffer = u16.buffer
+console.log(unit8_buf4);
+//var len = unit8_buf4.buffer.getbyteLength();
+
+var aa = "ccc";
+var c = 1;
+
 </script>
 
 <script>
