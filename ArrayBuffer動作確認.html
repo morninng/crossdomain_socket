@@ -1,0 +1,99 @@
+<html>
+<head>
+
+	<script type="text/javascript" src="./public/javascripts/socket.io-stream.js"></script>
+	<script type="text/javascript" src="./public/javascripts/socket.io.js"></script>
+</head>
+<body>
+
+B
+<script>
+
+var f64 = new Float64Array(8);
+var f32 = new Float32Array(16);
+
+// 符号付き整数の配列
+
+var i32 = new Int32Array(5);
+i32[0] = 1234;
+i32[1] = 5678;
+i32[2] = -1111;
+i32[3] = -5555;
+var ss_i32 = new ss.Buffer(i32);
+console.log(ss_i32);
+
+
+var i16 = new Int16Array(5);
+i16[0] = 1234;
+i16[1] = 5678;
+i16[2] = -1111;
+i16[3] = -5555;
+
+var ss_i16 = new ss.Buffer(i16);
+console.log(ss_i16);
+
+
+var i8 = new Int8Array(5);
+i8[0] = 255;
+i8[1] = 100;
+i8[2] = -100;
+i8[3] = 0;
+var ss_i8 = new ss.Buffer(i8);
+console.log(ss_i8);
+
+// 符号なし整数の配列
+var u32 = new Uint32Array(5);
+var u16 = new Uint16Array(5);
+var u8 = new Uint8Array(5);
+
+
+
+
+// 符号付き整数の配列
+
+var u32 = new Uint32Array(5);
+u32[0] = 1234;
+u32[1] = 5678;
+u32[2] = -1111;
+u32[3] = -5555;
+var ss_u32 = new ss.Buffer(u32);
+console.log(ss_u32);
+
+
+var u16 = new Uint16Array(5);
+u16[0] = 1234;
+u16[1] = 5678;
+u16[2] = -1111;
+u16[3] = -5555;
+
+var ss_u16 = new ss.Buffer(u16);
+console.log(ss_u16);
+
+
+var u8 = new Uint8Array(5);
+u8[0] = 255;
+u8[1] = 200;
+u8[2] = 100;
+u8[3] = 1;
+var ss_u8 = new ss.Buffer(u8);
+console.log(ss_u8);
+
+</script>
+
+<script>
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

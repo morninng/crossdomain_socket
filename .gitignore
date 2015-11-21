@@ -1,0 +1,7 @@
+node_modules/
+*.log
+*.wav
+*~
+*jquery.js
+*socket.io.js
+*socket.io-stream.js

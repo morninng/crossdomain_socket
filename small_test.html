@@ -1,0 +1,26 @@
+<html>
+
+<script>
+
+
+	var start_audio_polling = function(){
+		console.log("start audio callbac");
+
+	}
+
+	if (!navigator.getUserMedia){
+		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+		navigator.mozGetUserMedia || navigator.msGetUserMedia;
+	}
+
+	if (navigator.getUserMedia) {
+		navigator.getUserMedia(
+			{audio:true},
+			 function(stream){start_audio_polling(stream); console.log(self)},
+			 function(e) {console.log('Error'); } );
+	} else{
+		console.log('getUserMedia not supported');
+	}
+
+</script>
+</html>

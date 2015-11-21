@@ -1,16 +1,28 @@
 <html>
 <head>
 	<script type="text/javascript" src="https://127.0.0.1:3000/socket.io.js"></script>
-	<script src="https://127.0.0.1:3000/jquery.js"></script>
+	<script type="text/javascript" src="https://127.0.0.1:3000/socket.io-stream.js"></script>
+	<script src="https://127.0.0.1:3000/javascripts/jquery.js"></script>
+	<script src="https://127.0.0.1:3000/javascripts/recording.js"></script>
 </head>
 <body>
 
 
 
 <input type="file" id="input_files" name="files[]" multiple />
+<br><br><br>
+
+<input type="button" id="startRecord" value="Start Recording">
+<input type="button" id="stopRecord" value="Stop Recording">
+
+
+
 
 
 <script>
+
+	var audio_record_obj = new Recording();
+
 
 	var socket_io = io.connect('https://127.0.0.1:3000/');
 
@@ -29,13 +41,22 @@
 			  }
 	  	}
 	  }
+	  audio_record_obj.set_socket(socket_io);
 
-  	document.getElementById('input_files').addEventListener('change', handleFileSelect, false);
+  	document.getElementById('input_files').addEventListener('click', handleFileSelect, false);
+  	document.getElementById('startRecord').addEventListener('click', audio_record_obj.start_record, false);
+  	document.getElementById('stopRecord').addEventListener('click', audio_record_obj.stop_record, false);
+
+	  socket_io.on('disconnect', function(){
+			audio_record_obj.set_socket(null);
+	  });
 
 	});
 
 
 </script>
+
+
 
 
 

@@ -1,0 +1,57 @@
+<html>
+<head>
+
+	<script type="text/javascript" src="./public/javascripts/socket.io-stream.js"></script>
+	<script type="text/javascript" src="./public/javascripts/socket.io.js"></script>
+
+
+</head>
+<body>
+
+<script>
+
+var array_16 = new Int16Array(6);
+array_16[0] = 0x0001;
+array_16[1] = 0x000F;
+array_16[2] = 0x00FF;
+array_16[3] = 0x0FFF;
+array_16[4] = 0xFF00;
+array_16[5] = 0xF000;
+var unit8_buf = new Uint8Array(12);
+unit8_buf[0] = array_16[0] & 0x00FF;
+unit8_buf[1] = (array_16[0] & 0xFF00) >> 8;
+unit8_buf[2] = array_16[1] & 0x00FF;
+unit8_buf[3] = (array_16[1] & 0xFF00) >> 8;
+unit8_buf[4] = array_16[2] & 0x00FF;
+unit8_buf[5] = (array_16[2] & 0xFF00) >> 8;
+unit8_buf[6] = array_16[3] & 0x00FF;
+unit8_buf[7] = (array_16[3] & 0xFF00) >> 8;
+unit8_buf[8] = array_16[4] & 0x00FF;
+unit8_buf[9] = (array_16[4] & 0xFF00) >> 8;
+unit8_buf[10] = array_16[5] & 0x00FF;
+unit8_buf[11] = (array_16[5] & 0xFF00) >> 8;
+
+
+var ss_unit8_buf = new ss.Buffer(unit8_buf);
+
+console.log(ss_unit8_buf[0].toString(16))
+console.log(ss_unit8_buf[1].toString(16))
+console.log(ss_unit8_buf[2].toString(16))
+console.log(ss_unit8_buf[3].toString(16))
+console.log(ss_unit8_buf[4].toString(16))
+console.log(ss_unit8_buf[5].toString(16))
+console.log(ss_unit8_buf[6].toString(16))
+console.log(ss_unit8_buf[7].toString(16))
+console.log(ss_unit8_buf[8].toString(16))
+console.log(ss_unit8_buf[9].toString(16))
+console.log(ss_unit8_buf[10].toString(16))
+console.log(ss_unit8_buf[11].toString(16))
+
+
+var fa = new Float32Array(64);
+var ba = new Uint8Array(fa.buffer, 0, Float32Array.BYTES_PER_ELEMENT);
+
+</script>
+
+</body>
+</html>
