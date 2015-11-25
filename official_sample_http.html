@@ -1,0 +1,54 @@
+<html>
+<head>
+	<script type="text/javascript" src="http://127.0.0.1:3000/socket.io.js"></script>
+	<script type="text/javascript" src="http://127.0.0.1:3000/socket.io-stream.js"></script>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="http://127.0.0.1:3000/javascripts/recording.js"></script>
+</head>
+<body>
+
+
+
+<input type="file" id="input_files" name="files[]" multiple />
+<br><br><br>
+
+<input type="button" id="startRecord" value="Start Recording">
+<input type="button" id="suspendRecord" value="SuspendRecording">
+<input type="button" id="stopRecord" value="Stop Recording">
+
+
+
+
+
+<script>
+
+	var audio_record_obj = new Recording();
+
+
+	var socket_io = io.connect('http://127.0.0.1:3000/');
+
+  socket_io.on('connect', function(){
+
+	  audio_record_obj.set_socket(socket_io);
+  	document.getElementById('startRecord').addEventListener('click', audio_record_obj.start_record, false);
+  	document.getElementById('suspendRecord').addEventListener('click', audio_record_obj.suspend_record, false);
+  	document.getElementById('stopRecord').addEventListener('click', audio_record_obj.stop_record, false);
+
+	  socket_io.on('disconnect', function(){
+			audio_record_obj.set_socket(null);
+			audio_record_obj.disconnect();
+	  });
+
+	});
+
+
+</script>
+
+
+
+
+
+
+</body>
+</html>
+

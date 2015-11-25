@@ -1,9 +1,9 @@
 var express = require('express');
 var path = require('path');
 var fs = require('fs');
-var https = require('https');
+var http = require('http');
 var wav = require('wav');
-var streamBuffers = require("stream-buffers");
+// var streamBuffers = require("stream-buffers");
 var ss = require('socket.io-stream');
 // var io_cilent = require('engine.io-client');
 
@@ -24,9 +24,9 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-var httpsServer = https.createServer(credentials, app);
+var httpServer = http.createServer(/*credentials,*/ app);
 
-var server = httpsServer.listen(serverPort, function () {
+var server = httpServer.listen(serverPort, function () {
   var host = server.address().address;
   var port = server.address().port;
   console.log('Example app listening at http://%s:%s', host, port);
@@ -69,12 +69,13 @@ io.sockets.setMaxListeners(0);
 						channels:1,
 						sampleRate:sample_rate,
 						bitDepth:16});
-
+/*
 				var myReadableStreamBuffer = new streamBuffers.ReadableStreamBuffer({
 				    frequency:  0,        // in milliseconds.
 				    chunkSize: 40960       // in bytes.
 				});
 				myReadableStreamBuffer.setMaxListeners(Infinity);
+				*/
 			}
 	  });
 
@@ -97,6 +98,8 @@ io.sockets.setMaxListeners(0);
 
 }());
 
+/*
 function Recording(){
 	
 }
+*/

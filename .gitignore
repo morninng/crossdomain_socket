@@ -5,3 +5,8 @@ node_modules/
 *jquery.js
 *socket.io.js
 *socket.io-stream.js
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
