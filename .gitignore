@@ -6,7 +6,16 @@ node_modules/
 *socket.io.js
 *socket.io-stream.js
 
-cert/*
+cert/
+cert/mixidea.cert
+cert/mixidea.csr
+cert/mixidea.key
+cert/csr.pem
+cert/file.crt
+cert/file.pem
+
+
+
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

@@ -1,15 +1,15 @@
 var express = require('express');
 var path = require('path');
 var fs = require('fs');
-var http = require('http');
+var https = require('https');
 var wav = require('wav');
 // var streamBuffers = require("stream-buffers");
 var ss = require('socket.io-stream');
 // var io_cilent = require('engine.io-client');
 
 var credentials = {
-  key: fs.readFileSync('./cert/file.pem'),
-  cert: fs.readFileSync('./cert/file.crt')
+  key: fs.readFileSync('./cert/mixidea.key'),
+  cert: fs.readFileSync('./cert/mixidea.cert')
 };
 var serverPort = 3000;
 
@@ -24,7 +24,7 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-var httpServer = http.createServer(/*credentials,*/ app);
+var httpServer = https.createServer(credentials, app);
 
 var server = httpServer.listen(serverPort, function () {
   var host = server.address().address;
