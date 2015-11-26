@@ -6,6 +6,8 @@ node_modules/
 *socket.io.js
 *socket.io-stream.js
 
+cert/*
+
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
