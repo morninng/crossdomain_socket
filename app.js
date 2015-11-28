@@ -5,7 +5,14 @@ var https = require('https');
 var wav = require('wav');
 // var streamBuffers = require("stream-buffers");
 var ss = require('socket.io-stream');
+var config = require('./config/mixidea.conf');
+console.log("bucket name is " + config.BucketName);
+
+var AWS = require('aws-sdk');
+AWS.config.update({accessKeyId: config.AwsKeyId, secretAccessKey: config.SecretKey});
+s3 = new AWS.S3({params: {Bucket:config.BucketName} });
 // var io_cilent = require('engine.io-client');
+
 
 var credentials = {
   key: fs.readFileSync('./cert/mixidea.key'),
@@ -62,20 +69,13 @@ io.sockets.setMaxListeners(0);
 */
 		socket.on('audio_record_start', function(data){
 			console.log("audio record start");
-			var outfile  = data.filename + "_aaa.wav";
+			self.outfile  = data.filename + "_aaa.wav";
 			var sample_rate = data.sample_rate || 44100;
 			if(!self.filewriter_aaa){
-				self.filewriter_aaa = new wav.FileWriter(outfile, {
+				self.filewriter_aaa = new wav.FileWriter(self.outfile, {
 						channels:1,
 						sampleRate:sample_rate,
 						bitDepth:16});
-/*
-				var myReadableStreamBuffer = new streamBuffers.ReadableStreamBuffer({
-				    frequency:  0,        // in milliseconds.
-				    chunkSize: 40960       // in bytes.
-				});
-				myReadableStreamBuffer.setMaxListeners(Infinity);
-				*/
 			}
 	  });
 
@@ -90,6 +90,21 @@ io.sockets.setMaxListeners(0);
 		socket.on('audio_record_end', function(data){
 			console.log("audio recording finished");
 			if(self.filewriter_aaa){
+
+				if(true){ //add condition to record the file
+			    fs.readFile(self.outfile, function (err, data) {
+			      s3.putObject(
+			        {Key: self.outfile, ContentType: "audio/wav", Body: data, ACL: "public-read"},
+			        function(error, data){
+			          if(data !==null){
+			            console.log("succeed to save data on S3");
+			          }else{
+			            console.log("fai to save data" + error + data);
+			          }
+			        }
+			      );
+			    });
+				}
 				self.filewriter_aaa.end();
 				self.filewriter_aaa = null;
 			}

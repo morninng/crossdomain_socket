@@ -14,7 +14,7 @@ cert/csr.pem
 cert/file.crt
 cert/file.pem
 
-
+config/mixidea.conf
 
 
 # Elastic Beanstalk Files
