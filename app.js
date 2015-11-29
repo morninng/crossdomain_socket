@@ -3,6 +3,9 @@ var path = require('path');
 var fs = require('fs');
 var https = require('https');
 var wav = require('wav');
+var sox = require('sox');
+var SoxCommand = require('sox-audio');
+
 // var streamBuffers = require("stream-buffers");
 var ss = require('socket.io-stream');
 var config = require('./config/mixidea.conf');
@@ -69,10 +72,12 @@ io.sockets.setMaxListeners(0);
 */
 		socket.on('audio_record_start', function(data){
 			console.log("audio record start");
-			self.outfile  = data.filename + "_aaa.wav";
+			self.outfile_name  = data.filename + "_aaa";
+			self.outfile_name_wav  = self.outfile_name + ".wav";
+			self.outfile_name_mp3  = self.outfile_name + ".mp3";
 			var sample_rate = data.sample_rate || 44100;
 			if(!self.filewriter_aaa){
-				self.filewriter_aaa = new wav.FileWriter(self.outfile, {
+				self.filewriter_aaa = new wav.FileWriter(self.outfile_name_wav, {
 						channels:1,
 						sampleRate:sample_rate,
 						bitDepth:16});
@@ -92,12 +97,15 @@ io.sockets.setMaxListeners(0);
 			if(self.filewriter_aaa){
 
 				if(true){ //add condition to record the file
-			    fs.readFile(self.outfile, function (err, data) {
+			    transcode_file_upload_s3_command(self.outfile_name);
+
+			    fs.readFile(self.outfile_name_wav, function (err, data) {
 			      s3.putObject(
-			        {Key: self.outfile, ContentType: "audio/wav", Body: data, ACL: "public-read"},
+			        {Key: self.outfile_name_wav, ContentType: "audio/wav", Body: data, ACL: "public-read"},
 			        function(error, data){
 			          if(data !==null){
 			            console.log("succeed to save data on S3");
+
 			          }else{
 			            console.log("fai to save data" + error + data);
 			          }
@@ -113,8 +121,36 @@ io.sockets.setMaxListeners(0);
 
 }());
 
-/*
-function Recording(){
-	
+
+
+
+
+function transcode_file_upload_s3_command(file_name){
+
+
+  console.log("transcode command is called");
+	var source_file = './' + file_name + '.wav';
+	var dest_file = './' + file_name + '.mp3';
+
+	var wstream = fs.createWriteStream(dest_file);
+	var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
+
+
+	command.on('progress', function(progress) {
+	  console.log('Processing progress: ', progress);
+	});
+	 
+	command.on('error', function(err, stdout, stderr) {
+	  console.log('Cannot process audio: ' + err.message);
+	  console.log('Sox Command Stdout: ', stdout);
+	  console.log('Sox Command Stderr: ', stderr)
+	});
+	 
+	command.on('end', function() {
+	  console.log('Sox command succeeded!');
+	  wstream.end();
+	});
+
+	command.run();
+
 }
-*/

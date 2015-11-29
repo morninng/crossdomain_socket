@@ -1,6 +1,7 @@
 node_modules/
 *.log
 *.wav
+*.mp3
 *~
 *jquery.js
 *socket.io.js
