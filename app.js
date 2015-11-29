@@ -99,19 +99,6 @@ io.sockets.setMaxListeners(0);
 				if(true){ //add condition to record the file
 			    transcode_file_upload_s3_command(self.outfile_name);
 
-			    fs.readFile(self.outfile_name_wav, function (err, data) {
-			      s3.putObject(
-			        {Key: self.outfile_name_wav, ContentType: "audio/wav", Body: data, ACL: "public-read"},
-			        function(error, data){
-			          if(data !==null){
-			            console.log("succeed to save data on S3");
-
-			          }else{
-			            console.log("fai to save data" + error + data);
-			          }
-			        }
-			      );
-			    });
 				}
 				self.filewriter_aaa.end();
 				self.filewriter_aaa = null;
@@ -131,6 +118,7 @@ function transcode_file_upload_s3_command(file_name){
   console.log("transcode command is called");
 	var source_file = './' + file_name + '.wav';
 	var dest_file = './' + file_name + '.mp3';
+	var dest_file_name = file_name + '.mp3';
 
 	var wstream = fs.createWriteStream(dest_file);
 	var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
@@ -149,6 +137,19 @@ function transcode_file_upload_s3_command(file_name){
 	command.on('end', function() {
 	  console.log('Sox command succeeded!');
 	  wstream.end();
+		fs.readFile(dest_file_name, function (err, data) {
+			s3.putObject(
+				{Key: dest_file_name, ContentType: "audio/mp3", Body: data, ACL: "public-read"},
+				function(error, data){
+					if(data !==null){
+						console.log("succeed to save data on S3");
+					}else{
+						console.log("fai to save data" + error + data);
+					}
+				}
+			);
+		});
+
 	});
 
 	command.run();
