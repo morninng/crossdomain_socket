@@ -4,6 +4,7 @@
 	<script type="text/javascript" src="https://127.0.0.1:3000/socket.io-stream.js"></script>
 	<script src="//127.0.0.1:3000/javascripts/recording.js"></script>
 	<script src="https://127.0.0.1:3000/javascripts/recording.js"></script>
+	<script src="./first_party/recorder.js"></script>
 </head>
 <body>
 
@@ -17,27 +18,72 @@
 <input type="button" id="stopRecord" value="Stop Recording">
 
 
-
+  <ul id="recordingslist"></ul>
 
 
 <script>
+/*
+	var audio_context = new AudioContext;
+	var audio_local_recorder;
+	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+	navigator.getUserMedia({audio: true}, startUserMedia, function(e) {console.log('No audio input');});
+	function startUserMedia(stream){
+		var input = audio_context.createMediaStreamSource(stream);
+		audio_local_recorder = new Recorder(input);
+	}
+
+
+*/
+
+
 
 	var audio_record_obj = new Recording();
 
+	function start_record(){
+//		audio_local_recorder.record();
+		audio_record_obj.start_record();
+	}
+	function suspend_record(){
+		audio_record_obj.suspend_record();
+
+	}
+	function stop_record(){
+		/*
+		audio_local_recorder.stop();
+		audio_local_recorder.exportWAV(function(blob){
+			var recordingslist = document.getElementById("recordingslist");
+			var url =  URL.createObjectURL(blob);
+			var li = document.createElement('li');
+			var au = document.createElement('audio');
+			au.controls = true;
+			au.src = url;
+			var hf = document.createElement('a');
+			hf.href = url;
+			hf.download = new Date().toISOString() + '.wav';
+			hf.innerHTML = hf.download;
+			li.appendChild(au);
+			li.appendChild(hf);
+			recordingslist.appendChild(li);
+
+		});
+*/
+		audio_record_obj.stop_record();
+	}
 
 	var socket_io = io.connect('https://127.0.0.1:3000/');
 
   socket_io.on('connect', function(){
 
-	  audio_record_obj.set_socket(socket_io);
-  	document.getElementById('startRecord').addEventListener('click', audio_record_obj.start_record, false);
-  	document.getElementById('suspendRecord').addEventListener('click', audio_record_obj.suspend_record, false);
-  	document.getElementById('stopRecord').addEventListener('click', audio_record_obj.stop_record, false);
+		audio_record_obj.set_socket(socket_io);
 
-	  socket_io.on('disconnect', function(){
+		document.getElementById('startRecord').addEventListener('click', start_record, false);
+		document.getElementById('suspendRecord').addEventListener('click', suspend_record, false);
+		document.getElementById('stopRecord').addEventListener('click', stop_record, false);
+
+		socket_io.on('disconnect', function(){
 			audio_record_obj.set_socket(null);
 			audio_record_obj.disconnect();
-	  });
+		});
 
 	});
 

@@ -99,7 +99,7 @@ function convertoFloat32ToInt16(buffer) {
   var len = buffer.length;
 
   var double_len = len*2;
-  var unit8_buf = new Uint8Array(len);
+  var unit8_buf = new Uint8Array(double_len);
   var int16_variable = new Int16Array(1);
 
   for (var i=0; i< len; i++) {

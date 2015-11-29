@@ -1,22 +1,39 @@
 <html>
 <head>
-
+<!--
 	<script type="text/javascript" src="./public/javascripts/socket.io-stream.js"></script>
 	<script type="text/javascript" src="./public/javascripts/socket.io.js"></script>
-
+-->
 
 </head>
 <body>
 
 <script>
 
-var array_16 = new Int16Array(6);
+var array_16 = new Int16Array(10);
 array_16[0] = 0x0001;
 array_16[1] = 0x000F;
 array_16[2] = 0x00FF;
 array_16[3] = 0x0FFF;
 array_16[4] = 0xFF00;
 array_16[5] = 0xF000;
+array_16[6] = 0x8000;
+array_16[7] = 0x7FFF;
+array_16[8] = 0xFFFF;
+array_16[8] = 0xFFFE;
+
+console.log("array_16");
+console.log(array_16[0]);
+console.log(array_16[1]);
+console.log(array_16[2]);
+console.log(array_16[3]);
+console.log(array_16[4]);
+console.log(array_16[5]);
+console.log("0x8000 is " + array_16[6]);
+console.log("0x7FFF is " + array_16[7]);
+console.log("0xFFFF is " + array_16[8]);
+console.log("0xFFFE is " + array_16[9]);
+
 var unit8_buf = new Uint8Array(12);
 unit8_buf[0] = array_16[0] & 0x00FF;
 unit8_buf[1] = (array_16[0] & 0xFF00) >> 8;
@@ -31,8 +48,53 @@ unit8_buf[9] = (array_16[4] & 0xFF00) >> 8;
 unit8_buf[10] = array_16[5] & 0x00FF;
 unit8_buf[11] = (array_16[5] & 0xFF00) >> 8;
 
+console.log("uint 8 buf output")
+console.log(unit8_buf[0]);
+console.log(unit8_buf[1]);
+console.log(unit8_buf[2]);
+console.log(unit8_buf[3]);
+console.log(unit8_buf[4]);
+console.log(unit8_buf[5]);
+console.log(unit8_buf[6]);
+console.log(unit8_buf[7]);
+console.log(unit8_buf[8]);
+console.log(unit8_buf[9]);
+console.log(unit8_buf[10]);
+console.log(unit8_buf[11]);
 
-var ss_unit8_buf = new ss.Buffer(unit8_buf);
+
+
+
+// var ss_unit8_buf = new ss.Buffer(unit8_buf);
+
+var buffer = new ArrayBuffer(12);
+var view = new DataView(buffer);
+view.setInt16(0, array_16[0]);
+view.setInt16(2, array_16[1]);
+view.setInt16(4, array_16[2]);
+view.setInt16(6, array_16[3]);
+view.setInt16(8, array_16[4]);
+view.setInt16(10, array_16[5]);
+
+
+
+
+var uint8_array = new Uint8Array(buffer, 0, 12);
+console.log("uint 8 array output")
+console.log(uint8_array[0]);
+console.log(uint8_array[1]);
+console.log(uint8_array[2]);
+console.log(uint8_array[3]);
+console.log(uint8_array[4]);
+console.log(uint8_array[5]);
+console.log(uint8_array[6]);
+console.log(uint8_array[7]);
+console.log(uint8_array[8]);
+console.log(uint8_array[9]);
+console.log(uint8_array[10]);
+console.log(uint8_array[11]);
+
+/*
 
 console.log(ss_unit8_buf[0].toString(16))
 console.log(ss_unit8_buf[1].toString(16))
@@ -46,7 +108,7 @@ console.log(ss_unit8_buf[8].toString(16))
 console.log(ss_unit8_buf[9].toString(16))
 console.log(ss_unit8_buf[10].toString(16))
 console.log(ss_unit8_buf[11].toString(16))
-
+*/
 
 var fa = new Float32Array(64);
 var ba = new Uint8Array(fa.buffer, 0, Float32Array.BYTES_PER_ELEMENT);
