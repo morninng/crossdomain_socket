@@ -7,45 +7,51 @@
 </head>
 <body>
 
-
-
 <input type="file" id="input_files" name="files[]" multiple />
 <br><br><br>
 
 <input type="button" id="startRecord" value="Start Recording">
 <input type="button" id="suspendRecord" value="SuspendRecording">
+<input type="button" id="resumeRecord" value="Resume Recording">
 <input type="button" id="stopRecord" value="Stop Recording">
 
 
 
-
-
 <script>
-
 	var audio_record_obj = new Recording();
 
+	function start_record(){
+		audio_record_obj.start_record();
+	}
+	function suspend_record(){
+		audio_record_obj.suspend_record();
+
+	}
+	function resume_record(){
+		audio_record_obj.resume_record();
+
+	}
+	function stop_record(){
+		audio_record_obj.stop_record();
+	}
 
 	var socket_io = io.connect('https://recording.mixidea.org:3000/');
 
   socket_io.on('connect', function(){
 
-	  audio_record_obj.set_socket(socket_io);
-  	document.getElementById('startRecord').addEventListener('click', audio_record_obj.start_record, false);
-  	document.getElementById('suspendRecord').addEventListener('click', audio_record_obj.suspend_record, false);
-  	document.getElementById('stopRecord').addEventListener('click', audio_record_obj.stop_record, false);
+		audio_record_obj.set_socket(socket_io);
 
-	  socket_io.on('disconnect', function(){
+		document.getElementById('startRecord').addEventListener('click', start_record, false);
+		document.getElementById('resumeRecord').addEventListener('click', resume_record, false);
+		document.getElementById('suspendRecord').addEventListener('click', suspend_record, false);
+		document.getElementById('stopRecord').addEventListener('click', stop_record, false);
+
+		socket_io.on('disconnect', function(){
 			audio_record_obj.set_socket(null);
 			audio_record_obj.disconnect();
-	  });
-
+		});
 	});
-
-
 </script>
-
-
-
 
 
 
