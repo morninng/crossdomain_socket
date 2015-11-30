@@ -50,7 +50,6 @@ io.sockets.setMaxListeners(0);
 
   var self = this;
   self.io_namespace = io.of("/");
-//  self.io_namespace.setMaxListeners(Infinity);
 
 	self.io_namespace.on('connection', function(socket){
 		console.log("connected");
@@ -59,17 +58,8 @@ io.sockets.setMaxListeners(0);
 	  socket.on('disconnect', function(){
 	    console.log('user disconnected');
 	  });
-/*	  
-		socket.on('chat_msg', function(data){
-	    console.log(data);
-      socket.emit('test', data.name);
-	  });
-*/
-/*
-		socket.on('file_upload', function(data){
-	    console.log(data.filename);
-	    fs.writeFile('aaa.jpg', data.buffer);	  });
-*/
+
+
 		socket.on('audio_record_start', function(data){
 			console.log("audio record start");
 			self.outfile_name  = data.filename + "_aaa";
@@ -86,9 +76,6 @@ io.sockets.setMaxListeners(0);
 
 		ss(socket).on('audio_upload', function(stream){
 			console.log("audio upload called and it is piped to file writer");
-			//console.log(filewriter_aaa);
-			//myReadableStreamBuffer.put(data.buffer);
-			//data.buffer.pipe(filewriter_aaa);
 			stream.pipe(self.filewriter_aaa);
 		});
 
