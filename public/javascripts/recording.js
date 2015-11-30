@@ -6,18 +6,36 @@ function Recording(){
 	self.initialize();
 
 	self.start_record = function(){
-		console.log("start recording");
-		self.socket_io.emit('audio_record_start', {filename:"audio",sample_rate:self.sample_rate})
-		self.recording = true;
-		self.stream = ss.createStream();
-		console.log("audio polling stream id " + self.stream.id)
-		ss(self.socket_io).emit('audio_upload', self.stream);
+		if(!self.stream){
+			console.log("start recording");
+			self.recording = true;
+			self.stream = ss.createStream();
+			console.log("audio polling stream id " + self.stream.id)
+			ss(self.socket_io).emit('audio_record_start', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+		}else{
+			console.log("recording is already on going");
+		}
+	}
+	
+	self.resume_record = function(){
+		if(!self.stream){
+			console.log("resume recording");
+			self.recording = true;
+			self.stream = ss.createStream();
+			console.log("audio polling stream id " + self.stream.id)
+			ss(self.socket_io).emit('audio_record_resume', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+		}else{
+			console.log("recording is already on going");
+		}
 	}
 
 	self.suspend_record = function(){
 		console.log("suspend recording");
 		if(self.stream){
 			self.recording = false;
+			self.stream.end();
+			self.stream = null;
+			self.socket_io.emit('audio_record_suspend', {filename:"audio_aaa"});
 		}
 	}
 
@@ -27,12 +45,17 @@ function Recording(){
 			self.recording = false;
 			self.stream.end();
 			self.stream = null;
-			self.socket_io.emit('audio_record_end', {filename:"audio"});
+			self.socket_io.emit('audio_record_end', {filename:"audio_aaa"});
 		}
 	}
 
 	self.disconnect = function(){
-		self.stop_record();
+		if(self.stream){
+			console.log("disconnected");
+			self.recording = false;
+			self.stream.end();
+			self.stream = null;
+		}
 	}
 
 

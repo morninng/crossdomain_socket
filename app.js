@@ -59,36 +59,64 @@ io.sockets.setMaxListeners(0);
 	    console.log('user disconnected');
 	  });
 
-
-		socket.on('audio_record_start', function(data){
+		ss(socket).on('audio_record_start', function(stream, data){
 			console.log("audio record start");
-			self.outfile_name  = data.filename + "_aaa";
-			self.outfile_name_wav  = self.outfile_name + ".wav";
-			self.outfile_name_mp3  = self.outfile_name + ".mp3";
-			var sample_rate = data.sample_rate || 44100;
-			if(!self.filewriter_aaa){
-				self.filewriter_aaa = new wav.FileWriter(self.outfile_name_wav, {
-						channels:1,
-						sampleRate:sample_rate,
-						bitDepth:16});
-			}
-	  });
+			var outfile_name  = data.filename;
+			eval("self.file_writer_count_" + outfile_name + "=1");
+			var outfile_name_wav  = outfile_name + "_1.wav";
 
-		ss(socket).on('audio_upload', function(stream){
-			console.log("audio upload called and it is piped to file writer");
-			stream.pipe(self.filewriter_aaa);
+			var sample_rate = data.sample_rate || 44100;
+			socket.file_writer = new wav.FileWriter(
+			 outfile_name_wav, 
+			 {channels:1,
+			  sampleRate:sample_rate,
+			  bitDepth:16}
+			);
+			stream.pipe(socket.file_writer);
+		});
+
+		ss(socket).on('audio_record_resume', function(stream, data){
+			console.log("audio record resume");
+
+			var outfile_name  = data.filename;
+			var prev_count = eval("self.file_writer_count_" + outfile_name );
+			if(!prev_count){
+				return;
+			}
+
+			var next_count = prev_count + 1;
+			eval("self.file_writer_count_" + outfile_name + "=next_count");
+			var outfile_name_wav  = outfile_name + "_" + String(next_count)  + ".wav";
+
+			var sample_rate = data.sample_rate || 44100;
+			socket.file_writer = new wav.FileWriter(
+				 outfile_name_wav, 
+				 {channels:1,
+				  sampleRate:sample_rate,
+				  bitDepth:16}
+			);
+			stream.pipe(socket.file_writer);
+
+		});
+
+		socket.on('audio_record_suspend', function(data){
+			console.log("audio suspend");
+			if(socket.file_writer){
+			  socket.file_writer.end();
+			  socket.file_writer = null;
+			}
 		});
 
 		socket.on('audio_record_end', function(data){
-			console.log("audio recording finished");
-			if(self.filewriter_aaa){
-
-				if(true){ //add condition to record the file
-			    transcode_file_upload_s3_command(self.outfile_name);
-
-				}
-				self.filewriter_aaa.end();
-				self.filewriter_aaa = null;
+			console.log("audio recording end");
+			var outfile_name  = data.filename;
+			if(!socket.file_writer){
+				return;
+			}else{
+				var count = eval("self.file_writer_count_" + outfile_name );
+			  transcode_file_upload_s3_command(outfile_name, count);
+			  socket.file_writer.end();
+			  socket.file_writer = null;
 			}
 		});
 	});
@@ -99,16 +127,26 @@ io.sockets.setMaxListeners(0);
 
 
 
-function transcode_file_upload_s3_command(file_name){
+function transcode_file_upload_s3_command(file_name, count){
 
 
   console.log("transcode command is called");
-	var source_file = './' + file_name + '.wav';
+	// var source_file = './' + file_name + '.wav';
+
+
 	var dest_file = './' + file_name + '.mp3';
 	var dest_file_name = file_name + '.mp3';
 
 	var wstream = fs.createWriteStream(dest_file);
-	var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
+	//var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
+	var command = SoxCommand().output(wstream).outputFileType('mp3');
+
+	var source_file_list = new Array();
+	var file_list_len = count;
+	for(var i=0; i< file_list_len; i++){
+		var each_file_name = file_name + "_"+ String(i+1) + '.wav'
+		command.input(each_file_name);
+	}
 
 
 	command.on('progress', function(progress) {

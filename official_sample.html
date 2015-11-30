@@ -15,6 +15,7 @@
 
 <input type="button" id="startRecord" value="Start Recording">
 <input type="button" id="suspendRecord" value="SuspendRecording">
+<input type="button" id="resumeRecord" value="Resume Recording">
 <input type="button" id="stopRecord" value="Stop Recording">
 
 
@@ -47,6 +48,10 @@
 		audio_record_obj.suspend_record();
 
 	}
+	function resume_record(){
+		audio_record_obj.resume_record();
+
+	}
 	function stop_record(){
 		/*
 		audio_local_recorder.stop();
@@ -77,6 +82,7 @@
 		audio_record_obj.set_socket(socket_io);
 
 		document.getElementById('startRecord').addEventListener('click', start_record, false);
+		document.getElementById('resumeRecord').addEventListener('click', resume_record, false);
 		document.getElementById('suspendRecord').addEventListener('click', suspend_record, false);
 		document.getElementById('stopRecord').addEventListener('click', stop_record, false);
 
