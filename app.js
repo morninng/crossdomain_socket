@@ -63,7 +63,7 @@ io.sockets.setMaxListeners(0);
 			console.log("audio record start");
 			var outfile_name  = data.filename;
 			eval("self.file_writer_count_" + outfile_name + "=1");
-			var outfile_name_wav  = outfile_name + "_1.wav";
+			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
 
 			var sample_rate = data.sample_rate || 44100;
 			socket.file_writer = new wav.FileWriter(
@@ -86,7 +86,7 @@ io.sockets.setMaxListeners(0);
 
 			var next_count = prev_count + 1;
 			eval("self.file_writer_count_" + outfile_name + "=next_count");
-			var outfile_name_wav  = outfile_name + "_" + String(next_count)  + ".wav";
+			var outfile_name_wav  = './public/audio/' +  outfile_name + "_" + String(next_count)  + ".wav";
 
 			var sample_rate = data.sample_rate || 44100;
 			socket.file_writer = new wav.FileWriter(
@@ -134,8 +134,8 @@ function transcode_file_upload_s3_command(file_name, count){
 	// var source_file = './' + file_name + '.wav';
 
 
-	var dest_file = './' + file_name + '.mp3';
-	var dest_file_name = file_name + '.mp3';
+	var dest_file = './public/audio/' + file_name + '.mp3';
+	var dest_file_name = './public/audio/' + file_name + '.mp3';
 
 	var wstream = fs.createWriteStream(dest_file);
 	//var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
@@ -144,10 +144,9 @@ function transcode_file_upload_s3_command(file_name, count){
 	var source_file_list = new Array();
 	var file_list_len = count;
 	for(var i=0; i< file_list_len; i++){
-		var each_file_name = file_name + "_"+ String(i+1) + '.wav'
+		var each_file_name = './public/audio/' + file_name + "_"+ String(i+1) + '.wav'
 		command.input(each_file_name);
 	}
-
 
 	command.on('progress', function(progress) {
 	  console.log('Processing progress: ', progress);
