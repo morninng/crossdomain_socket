@@ -66,13 +66,14 @@ io.sockets.setMaxListeners(0);
 			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
 
 			var sample_rate = data.sample_rate || 44100;
-			socket.file_writer = new wav.FileWriter(
-			 outfile_name_wav, 
+			socket.file_writer = new Array();
+			socket.file_writer[0] = new wav.FileWriter(
+			 outfile_name_wav,
 			 {channels:1,
 			  sampleRate:sample_rate,
 			  bitDepth:16}
 			);
-			stream.pipe(socket.file_writer);
+			stream.pipe(socket.file_writer[0]);
 		});
 
 		ss(socket).on('audio_record_resume', function(stream, data){
@@ -89,21 +90,22 @@ io.sockets.setMaxListeners(0);
 			var outfile_name_wav  = './public/audio/' +  outfile_name + "_" + String(next_count)  + ".wav";
 
 			var sample_rate = data.sample_rate || 44100;
-			socket.file_writer = new wav.FileWriter(
+			socket.file_writer = socket.file_writer || new Array();
+			socket.file_writer[next_count] = new wav.FileWriter(
 				 outfile_name_wav, 
 				 {channels:1,
 				  sampleRate:sample_rate,
 				  bitDepth:16}
 			);
-			stream.pipe(socket.file_writer);
+			stream.pipe(socket.file_writer[next_count]);
 
 		});
 
 		socket.on('audio_record_suspend', function(data){
 			console.log("audio suspend");
 			if(socket.file_writer){
-			  socket.file_writer.end();
-			  socket.file_writer = null;
+			//  socket.file_writer.end();
+			//  socket.file_writer = null;
 			}
 		});
 
@@ -115,8 +117,8 @@ io.sockets.setMaxListeners(0);
 			}else{
 				var count = eval("self.file_writer_count_" + outfile_name );
 			  transcode_file_upload_s3_command(outfile_name, count);
-			  socket.file_writer.end();
-			  socket.file_writer = null;
+			//  socket.file_writer.end();
+			//  socket.file_writer = null;
 			}
 		});
 	});
