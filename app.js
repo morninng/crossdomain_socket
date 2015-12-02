@@ -62,7 +62,9 @@ io.sockets.setMaxListeners(0);
 		ss(socket).on('audio_record_start', function(stream, data){
 			console.log("audio record start");
 			var outfile_name  = data.filename;
+			var record_start_time = Date.now();
 			eval("self.file_writer_count_" + outfile_name + "=1");
+			eval("self.record_start_time_" + outfile_name + "=" + record_start_time);
 			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
 
 			var sample_rate = data.sample_rate || 44100;
@@ -115,16 +117,29 @@ io.sockets.setMaxListeners(0);
 			if(!socket.file_writer){
 				return;
 			}else{
+			  var record_start_time = eval("self.record_start_time_" + outfile_name);
+				var record_duration = Date.now() - record_start_time;
 				var count = eval("self.file_writer_count_" + outfile_name );
-			  transcode_file_upload_s3_command(outfile_name, count);
+				console.log("recording duration is " + record_duration + " msec");
+				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
+				setTimeout(function(){
+					transcode_file_upload_s3_command(outfile_name, count);
+					eval(" delete self.file_writer_count_" + outfile_name );
+					eval(" delete self.record_start_time_" + outfile_name );
+				}, record_duration);
+
+			 // transcode_file_upload_s3_command(outfile_name, count);
+
+
 			//  socket.file_writer.end();
 			//  socket.file_writer = null;
 			}
 		});
 	});
 
-}());
 
+
+}());
 
 
 
