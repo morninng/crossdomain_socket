@@ -152,7 +152,7 @@ function transcode_file_upload_s3_command(file_name, count){
 
 
 	var dest_file = './public/audio/' + file_name + '.mp3';
-	var dest_file_name = './public/audio/' + file_name + '.mp3';
+	var file_name_on_s3 = file_name + '.mp3';
 
 	var wstream = fs.createWriteStream(dest_file);
 	//var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
@@ -178,9 +178,9 @@ function transcode_file_upload_s3_command(file_name, count){
 	command.on('end', function() {
 	  console.log('Sox command succeeded!');
 	  wstream.end();
-		fs.readFile(dest_file_name, function (err, data) {
+		fs.readFile(dest_file, function (err, data) {
 			s3.putObject(
-				{Key: dest_file_name, ContentType: "audio/mp3", Body: data, ACL: "public-read"},
+				{Key: file_name_on_s3, ContentType: "audio/mp3", Body: data, ACL: "public-read"},
 				function(error, data){
 					if(data !==null){
 						console.log("succeed to save data on S3");
