@@ -16,82 +16,40 @@
 <input type="button" id="startRecord" value="Start Recording">
 <input type="button" id="suspendRecord" value="SuspendRecording">
 <input type="button" id="resumeRecord" value="Resume Recording">
-<input type="button" id="stopRecord" value="Stop Recording">
+<input type="button" id="stopRecord" value="Stop and save">
+<input type="button" id="stopPolling" value="Stop polling">
 
 
   <ul id="recordingslist"></ul>
 
 
 <script>
-/*
-	var audio_context = new AudioContext;
-	var audio_local_recorder;
-	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
-	navigator.getUserMedia({audio: true}, startUserMedia, function(e) {console.log('No audio input');});
-	function startUserMedia(stream){
-		var input = audio_context.createMediaStreamSource(stream);
-		audio_local_recorder = new Recorder(input);
-	}
 
+	document.getElementById('startRecord').addEventListener('click', start_record, false);
+	document.getElementById('resumeRecord').addEventListener('click', resume_record, false);
+	document.getElementById('suspendRecord').addEventListener('click', suspend_record, false);
+	document.getElementById('stopRecord').addEventListener('click', stop_record, false);
 
-*/
-
+	document.getElementById('stopPolling').addEventListener('click', stop_polling, false);
 
 
 	var audio_record_obj = new Recording();
-
 	function start_record(){
-//		audio_local_recorder.record();
 		audio_record_obj.start_record();
 	}
 	function suspend_record(){
 		audio_record_obj.suspend_record();
-
 	}
 	function resume_record(){
 		audio_record_obj.resume_record();
-
 	}
 	function stop_record(){
-		/*
-		audio_local_recorder.stop();
-		audio_local_recorder.exportWAV(function(blob){
-			var recordingslist = document.getElementById("recordingslist");
-			var url =  URL.createObjectURL(blob);
-			var li = document.createElement('li');
-			var au = document.createElement('audio');
-			au.controls = true;
-			au.src = url;
-			var hf = document.createElement('a');
-			hf.href = url;
-			hf.download = new Date().toISOString() + '.wav';
-			hf.innerHTML = hf.download;
-			li.appendChild(au);
-			li.appendChild(hf);
-			recordingslist.appendChild(li);
-
-		});
-*/
 		audio_record_obj.stop_record();
 	}
+	function stop_polling(){
+		audio_record_obj.finish_audio_polling();
+	}
 
-	var socket_io = io.connect('https://127.0.0.1:3000/');
-
-  socket_io.on('connect', function(){
-
-		audio_record_obj.set_socket(socket_io);
-
-		document.getElementById('startRecord').addEventListener('click', start_record, false);
-		document.getElementById('resumeRecord').addEventListener('click', resume_record, false);
-		document.getElementById('suspendRecord').addEventListener('click', suspend_record, false);
-		document.getElementById('stopRecord').addEventListener('click', stop_record, false);
-
-		socket_io.on('disconnect', function(){
-			audio_record_obj.set_socket(null);
-			audio_record_obj.disconnect();
-		});
-
-	});
 
 
 </script>

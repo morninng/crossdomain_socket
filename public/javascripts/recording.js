@@ -1,64 +1,38 @@
 
 function Recording(){
 	var self = this;
-	self.available = false
+	self.audio_available = false
 	self.recording = false;
+	self.socket_available = false;
 	self.initialize();
+	self.socket_communication_start();
 
-	self.start_record = function(){
-		if(!self.stream){
-			console.log("start recording");
-			self.recording = true;
-			self.stream = ss.createStream();
-			console.log("audio polling stream id " + self.stream.id)
-			ss(self.socket_io).emit('audio_record_start', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
-		}else{
-			console.log("recording is already on going");
-		}
-	}
-	
-	self.resume_record = function(){
-		if(!self.stream){
-			console.log("resume recording");
-			self.recording = true;
-			self.stream = ss.createStream();
-			console.log("audio polling stream id " + self.stream.id)
-			ss(self.socket_io).emit('audio_record_resume', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
-		}else{
-			console.log("recording is already on going");
-		}
-	}
+}
 
-	self.suspend_record = function(){
-		console.log("suspend recording");
-		if(self.stream){
-			self.recording = false;
-			self.stream.end();
-			self.stream = null;
-			self.socket_io.emit('audio_record_suspend', {filename:"audio_aaa"});
-		}
-	}
+Recording.prototype.socket_communication_start = function(){
+	var self = this;
 
-	self.stop_record = function(){
-		console.log("stop recording");
-		if(self.stream){
-			self.recording = false;
-			self.stream.end();
-			self.stream = null;
-			self.socket_io.emit('audio_record_end', {filename:"audio_aaa"});
-		}
-	}
+	self.socket_io = io.connect('https://127.0.0.1:3000/');
 
-	self.disconnect = function(){
-		if(self.stream){
-			console.log("disconnected");
-			self.recording = false;
-			self.stream.end();
-			self.stream = null;
-		}
-	}
+	self.socket_io.on('connect', function(){
+		console.log("socket connected");
+		self.socket_available = true;
 
+		self.socket_io.on('record_complete', function(data){
+			console.log('record complete' + data.filename);
+		});
 
+		self.socket_io.on('disconnect', function(){
+			console.log('disconnected');
+			self.socket_available = false;
+			if(self.stream){
+				console.log("disconnected");
+				self.recording = false;
+				self.stream.end();
+				self.stream = null;
+			}
+		});
+	});
 }
 
 Recording.prototype.initialize = function(){
@@ -71,36 +45,108 @@ Recording.prototype.initialize = function(){
 	}
 
 	if (navigator.getUserMedia) {
+		console.log("get user media");
 		navigator.getUserMedia(
 			{audio:true},
-			 function(stream){self.start_audio_polling(stream); console.log("aa")},
-			 function(e) {console.log('Error'); } );
+			function(stream){
+				self.audio_available = true;
+			 	self.start_audio_polling(stream);
+			},
+			function(e) {console.log('Error'); } );
 	} else{
 		console.log('getUserMedia not supported');
 	}
 }
 
 
-Recording.prototype.set_socket = function(in_socket){
+Recording.prototype.start_record = function(){
+
 	var self = this;
-	console.log("set socket");
-	self.socket_io = in_socket;
+
+	if(!self.socket_available || !self.audio_available){
+		return;
+	}
+
+	if(!self.stream){
+		console.log("start recording");
+		self.recording = true;
+		self.stream = ss.createStream();
+		console.log("audio polling stream id " + self.stream.id)
+		ss(self.socket_io).emit('audio_record_start', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+	}else{
+		console.log("recording is already on going");
+	}
 }
+
+Recording.prototype.resume_record = function(){
+
+	var self = this;
+
+	if(!self.socket_available || !self.audio_available){
+		return;
+	}
+
+
+	if(!self.stream){
+		console.log("resume recording");
+		self.recording = true;
+		self.stream = ss.createStream();
+		console.log("audio polling stream id " + self.stream.id)
+		ss(self.socket_io).emit('audio_record_resume', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+	}else{
+		console.log("recording is already on going");
+	}
+}
+
+Recording.prototype.suspend_record = function(){
+
+	var self = this;
+	if(!self.socket_available || !self.audio_available){
+		return;
+	}
+
+	console.log("suspend recording");
+	if(self.stream){
+		self.recording = false;
+		self.stream.end();
+		self.stream = null;
+		self.socket_io.emit('audio_record_suspend', {filename:"audio_aaa"});
+	}
+}
+
+
+Recording.prototype.stop_record = function(){
+
+	var self = this;
+	if(!self.socket_available || !self.audio_available){
+		return;
+	}
+	console.log("stop recording");
+	if(self.stream){
+		self.recording = false;
+		self.stream.end();
+		self.stream = null;
+		self.socket_io.emit('audio_record_end', {filename:"audio_aaa"});
+	}
+}
+
 
 
 
 Recording.prototype.start_audio_polling = function(stream){
 
 	var self = this;
-	self.available = true;
+	console.log("start polling")
 
 	audioContext = window.AudioContext || window.webkitAudioContext;
-	context = new audioContext();
-	self.sample_rate = context.sampleRate;
-	audioInput = context.createMediaStreamSource(stream);
+	self.context = new audioContext();
+	self.sample_rate = self.context.sampleRate;
+	self.audioInput = self.context.createMediaStreamSource(stream);
 	var bufferSize = 4096;
 	
-	self.scriptNode = context.createScriptProcessor(bufferSize, 1, 1);
+	self.scriptNode = self.context.createScriptProcessor(bufferSize, 1, 1);
+	self.audioInput.connect(self.scriptNode)
+	self.scriptNode.connect(self.context.destination); 
 
 	self.scriptNode.onaudioprocess = function(audioProcessingEvent){
 	  if(!self.recording || !self.socket_io ){
@@ -110,12 +156,18 @@ Recording.prototype.start_audio_polling = function(stream){
 	  var audio_array_buffer = convertoFloat32ToInt16(left);
 		var stream_buffer = new ss.Buffer(audio_array_buffer);
 		self.stream.write(stream_buffer, 'buffer');
-
 	}
-	audioInput.connect(self.scriptNode)
-	self.scriptNode.connect(context.destination); 
 }
 
+
+Recording.prototype.finish_audio_polling = function(){
+	var self = this;
+
+	//source.disconnect(self.scriptNode);
+  self.scriptNode.disconnect(self.context.destination);
+  self.context.close();
+  self.context = null;
+}
 
 
 function convertoFloat32ToInt16(buffer) {
