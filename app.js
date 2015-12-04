@@ -197,7 +197,6 @@ function transcode_file_upload_s3_command(file_name, count){
 	});
 
 	command.run();
-
 }
 
 
@@ -207,7 +206,6 @@ function save_AudioInfo_onParse(file_name, role_name){
 	var speech_tran_query = new Parse.Query(Speech_Transcription);
 	speech_tran_query.get("XhIN6TRlUK", {
 		success: function(speech_tran_obj) {
-			// The object was retrieved successfully.
 			var audio_url = config.S3_audio_url + config.BucketName + "/" + file_name;
 			speech_tran_obj.set(role_name + "audio",audio_url);
 			speech_tran_obj.save(null,{
@@ -220,11 +218,7 @@ function save_AudioInfo_onParse(file_name, role_name){
 			});			
 		},
 		error: function(object, error) {
-			// The object was not retrieved successfully.
 			console.log("fail to save data on parse");
 		}
-
 	});
-
-
 }

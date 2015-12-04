@@ -12,8 +12,8 @@ function Recording(){
 Recording.prototype.socket_communication_start = function(){
 	var self = this;
 
-	self.socket_io = io.connect('https://127.0.0.1:3000/');
-//	self.socket_io = io.connect('https://recording.mixidea.org:3000/');
+//	self.socket_io = io.connect('https://127.0.0.1:3000/');
+	self.socket_io = io.connect('https://recording.mixidea.org:3000/');
 
 	self.socket_io.on('connect', function(){
 		console.log("socket connected");
