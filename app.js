@@ -5,11 +5,11 @@ var https = require('https');
 var wav = require('wav');
 var sox = require('sox');
 var SoxCommand = require('sox-audio');
-
-// var streamBuffers = require("stream-buffers");
 var ss = require('socket.io-stream');
 var config = require('./config/mixidea.conf');
-console.log("bucket name is " + config.BucketName);
+var Parse = require('parse/node');
+
+Parse.initialize(config.ParseAppID, config.ParseAppKey);
 
 var AWS = require('aws-sdk');
 AWS.config.update({accessKeyId: config.AwsKeyId, secretAccessKey: config.SecretKey});
@@ -184,6 +184,9 @@ function transcode_file_upload_s3_command(file_name, count){
 				function(error, data){
 					if(data !==null){
 						console.log("succeed to save data on S3");
+
+						save_AudioInfo_onParse(file_name_on_s3, "PM");
+
 					}else{
 						console.log("fai to save data" + error + data);
 					}
@@ -194,5 +197,34 @@ function transcode_file_upload_s3_command(file_name, count){
 	});
 
 	command.run();
+
+}
+
+
+function save_AudioInfo_onParse(file_name, role_name){
+
+	var Speech_Transcription = Parse.Object.extend("Speech_Transcription");
+	var speech_tran_query = new Parse.Query(Speech_Transcription);
+	speech_tran_query.get("XhIN6TRlUK", {
+		success: function(speech_tran_obj) {
+			// The object was retrieved successfully.
+			var audio_url = config.S3_audio_url + config.BucketName + "/" + file_name;
+			speech_tran_obj.set(role_name + "audio",audio_url);
+			speech_tran_obj.save(null,{
+				success: function(){
+					console.log("succeed to save data on parse");
+				},
+				error: function(){
+					console.log("fail to save data");
+				}
+			});			
+		},
+		error: function(object, error) {
+			// The object was not retrieved successfully.
+			console.log("fail to save data on parse");
+		}
+
+	});
+
 
 }
