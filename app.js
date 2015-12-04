@@ -211,6 +211,7 @@ function save_AudioInfo_onParse(file_name, role_name){
 			speech_tran_obj.save(null,{
 				success: function(){
 					console.log("succeed to save data on parse");
+					console.log(audio_url);
 				},
 				error: function(){
 					console.log("fail to save data");
