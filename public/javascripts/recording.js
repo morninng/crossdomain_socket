@@ -1,6 +1,7 @@
 function RecordingWrapper(){
 	var self = this;
 	self.under_recording = false;
+	self.store_speech_id = null;
 }
 
 RecordingWrapper.prototype.open = function(){
@@ -26,9 +27,13 @@ RecordingWrapper.prototype.Speech_Start = function(type, speaker_role_name){
 		self.file_name = game_id + speaker_role_name + speech_id;
 		switch(type){
 			case "speaker":
-				self.record_obj.start_record(self.file_name);
 				self.current_speech_type = "speaker";
 				self.under_recording = true;
+				if(self.store_speech_id == speech_id){
+					self.record_obj.resume_record(self.file_name);
+				}else{
+					self.record_obj.start_record(self.file_name);
+				}
 			break;
 			case "poi":
 				self.record_obj.resume_record(self.file_name);
@@ -36,6 +41,7 @@ RecordingWrapper.prototype.Speech_Start = function(type, speaker_role_name){
 				self.under_recording = true;
 			break;
 		}
+		self.store_speech_id = speech_id;
 	}
 
 }
