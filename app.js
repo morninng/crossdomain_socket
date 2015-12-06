@@ -66,6 +66,7 @@ io.sockets.setMaxListeners(0);
 			eval("self.file_writer_count_" + outfile_name + "=1");
 			eval("self.record_start_time_" + outfile_name + "=" + record_start_time);
 			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
+			console.log("output file name is " + outfile_name_wav);
 
 			var sample_rate = data.sample_rate || 44100;
 			socket.file_writer = new Array();
@@ -83,13 +84,16 @@ io.sockets.setMaxListeners(0);
 
 			var outfile_name  = data.filename;
 			var prev_count = eval("self.file_writer_count_" + outfile_name );
+
 			if(!prev_count){
 				return;
 			}
 
 			var next_count = prev_count + 1;
+			console.log("resume count is " + next_count);
 			eval("self.file_writer_count_" + outfile_name + "=next_count");
 			var outfile_name_wav  = './public/audio/' +  outfile_name + "_" + String(next_count)  + ".wav";
+			console.log("output file name is " + outfile_name_wav);
 
 			var sample_rate = data.sample_rate || 44100;
 			socket.file_writer = socket.file_writer || new Array();
@@ -121,6 +125,7 @@ io.sockets.setMaxListeners(0);
 				var record_duration = Date.now() - record_start_time;
 				var count = eval("self.file_writer_count_" + outfile_name );
 				console.log("recording duration is " + record_duration + " msec");
+				console.log("file count is " + count );
 				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
 				setTimeout(function(){
 					transcode_file_upload_s3_command(outfile_name, count);
