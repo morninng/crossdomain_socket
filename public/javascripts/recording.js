@@ -1,3 +1,64 @@
+function RecordingWrapper(){
+	var self = this;
+	self.under_recording = false;
+}
+
+RecordingWrapper.prototype.open = function(){
+	var self = this;
+	self.record_obj = self.record_obj ||  new Recording();
+}
+
+RecordingWrapper.prototype.close = function(){
+	var self = this;
+	self.record_ob.finish_audio_polling();
+	self.record_obj = null;
+}
+
+RecordingWrapper.prototype.Speech_Start = function(type, speaker_role_name){
+	var self = this;
+
+	if(!self.record_obj){
+		return;
+	}
+	if(self.record_obj.get_availability()){
+		var game_id = global_debate_game_id;
+		var speech_id = get_speech_id();
+		self.file_name = game_id + speaker_role_name + speech_id;
+		switch(type){
+			case "speaker":
+				self.record_obj.start_record(self.file_name);
+				self.current_speech_type = "speaker";
+				self.under_recording = true;
+			break;
+			case "poi":
+				self.record_obj.resume_record(self.file_name);
+				self.current_speech_type = "poi";
+				self.under_recording = true;
+			break;
+		}
+	}
+
+}
+
+RecordingWrapper.prototype.Speech_Finish = function(type){
+	var self = this;
+	if(!self.record_obj){
+		return;
+	}
+	if(!self.under_recording){
+		return;
+	}
+	switch(type){
+		case "discussion":
+			self.record_obj.stop_record_save(self.file_name);
+		break;
+		case "other":
+			self.record_obj.suspend_record(self.file_name);
+		break;
+	}
+
+}
+
 
 function Recording(){
 	var self = this;
@@ -6,8 +67,18 @@ function Recording(){
 	self.socket_available = false;
 	self.initialize();
 	self.socket_communication_start();
-
 }
+
+
+Recording.prototype.get_availability = function(){
+	var self = this;
+
+	if(self.audio_available && self.socket_available){
+		return true;
+	}
+	return false;
+}
+
 
 Recording.prototype.socket_communication_start = function(){
 	var self = this;
@@ -60,7 +131,7 @@ Recording.prototype.initialize = function(){
 }
 
 
-Recording.prototype.start_record = function(){
+Recording.prototype.start_record = function(in_file_name){
 
 	var self = this;
 
@@ -73,13 +144,13 @@ Recording.prototype.start_record = function(){
 		self.recording = true;
 		self.stream = ss.createStream();
 		console.log("audio polling stream id " + self.stream.id)
-		ss(self.socket_io).emit('audio_record_start', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+		ss(self.socket_io).emit('audio_record_start', self.stream, {filename:in_file_name,sample_rate:self.sample_rate} );
 	}else{
 		console.log("recording is already on going");
 	}
 }
 
-Recording.prototype.resume_record = function(){
+Recording.prototype.resume_record = function(in_file_name){
 
 	var self = this;
 
@@ -93,30 +164,27 @@ Recording.prototype.resume_record = function(){
 		self.recording = true;
 		self.stream = ss.createStream();
 		console.log("audio polling stream id " + self.stream.id)
-		ss(self.socket_io).emit('audio_record_resume', self.stream, {filename:"audio_aaa",sample_rate:self.sample_rate} );
+		ss(self.socket_io).emit('audio_record_resume', self.stream, {filename:in_file_name,sample_rate:self.sample_rate} );
 	}else{
 		console.log("recording is already on going");
 	}
 }
 
-Recording.prototype.suspend_record = function(){
-
+Recording.prototype.suspend_record = function(in_file_name){
 	var self = this;
 	if(!self.socket_available || !self.audio_available){
 		return;
 	}
-
 	console.log("suspend recording");
 	if(self.stream){
 		self.recording = false;
 		self.stream.end();
 		self.stream = null;
-		self.socket_io.emit('audio_record_suspend', {filename:"audio_aaa"});
+		self.socket_io.emit('audio_record_suspend', {filename:in_file_name});
 	}
 }
 
-
-Recording.prototype.stop_record = function(){
+Recording.prototype.stop_record_save = function(in_file_name){
 
 	var self = this;
 	if(!self.socket_available || !self.audio_available){
@@ -127,7 +195,7 @@ Recording.prototype.stop_record = function(){
 		self.recording = false;
 		self.stream.end();
 		self.stream = null;
-		self.socket_io.emit('audio_record_end', {filename:"audio_aaa"});
+		self.socket_io.emit('audio_record_end', {filename:in_file_name});
 	}
 }
 
@@ -163,7 +231,6 @@ Recording.prototype.start_audio_polling = function(stream){
 
 Recording.prototype.finish_audio_polling = function(){
 	var self = this;
-
 	//source.disconnect(self.scriptNode);
   self.scriptNode.disconnect(self.context.destination);
   self.context.close();
@@ -177,12 +244,10 @@ function convertoFloat32ToInt16(buffer) {
   var double_len = len*2;
   var unit8_buf = new Uint8Array(double_len);
   var int16_variable = new Int16Array(1);
-
   for (var i=0; i< len; i++) {
     int16_variable[0] = buffer[i]*0x7FFF;    //convert to 16 bit PCM
     unit8_buf[2*i] = int16_variable[0] & 0x00FF; //convert to uint8 for stream buffer
     unit8_buf[2*i+1] = (int16_variable[0] & 0xFF00) >> 8;
   }
-
   return unit8_buf.buffer
 }
