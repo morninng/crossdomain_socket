@@ -118,6 +118,11 @@ io.sockets.setMaxListeners(0);
 		socket.on('audio_record_end', function(data){
 			console.log("audio recording end");
 			var outfile_name  = data.filename;
+			var role_name  = data.role_name;
+			var speech_transcript_id  = data.speech_transcript_id;
+			console.log("file name is " + outfile_name);
+			console.log("role name is " + role_name);
+			console.log(" speech transcription id is " + speech_transcript_id);
 			if(!socket.file_writer){
 				return;
 			}else{
@@ -128,12 +133,11 @@ io.sockets.setMaxListeners(0);
 				console.log("file count is " + count );
 				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
 				setTimeout(function(){
-					transcode_file_upload_s3_command(outfile_name, count);
+					transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name);
 					eval(" delete self.file_writer_count_" + outfile_name );
 					eval(" delete self.record_start_time_" + outfile_name );
 				}, record_duration);
 
-			 // transcode_file_upload_s3_command(outfile_name, count);
 
 
 			//  socket.file_writer.end();
@@ -149,7 +153,7 @@ io.sockets.setMaxListeners(0);
 
 
 
-function transcode_file_upload_s3_command(file_name, count){
+function transcode_file_upload_s3_command(file_name, count, speech_transcript_id, role_name ){
 
 
   console.log("transcode command is called");
@@ -190,7 +194,7 @@ function transcode_file_upload_s3_command(file_name, count){
 					if(data !==null){
 						console.log("succeed to save data on S3");
 
-						save_AudioInfo_onParse(file_name_on_s3, "PM");
+						save_AudioInfo_onParse(file_name_on_s3, speech_transcript_id, role_name);
 
 					}else{
 						console.log("fai to save data" + error + data);
@@ -205,14 +209,14 @@ function transcode_file_upload_s3_command(file_name, count){
 }
 
 
-function save_AudioInfo_onParse(file_name, role_name){
+function save_AudioInfo_onParse(file_name, speech_transcript_id , role_name){
 
 	var Speech_Transcription = Parse.Object.extend("Speech_Transcription");
 	var speech_tran_query = new Parse.Query(Speech_Transcription);
-	speech_tran_query.get("XhIN6TRlUK", {
+	speech_tran_query.get(speech_transcript_id, {
 		success: function(speech_tran_obj) {
 			var audio_url = config.S3_audio_url + config.BucketName + "/" + file_name;
-			speech_tran_obj.set(role_name + "audio",audio_url);
+			speech_tran_obj.set(role_name + "_Audio",audio_url);
 			speech_tran_obj.save(null,{
 				success: function(){
 					console.log("succeed to save data on parse");
