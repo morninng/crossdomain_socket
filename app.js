@@ -49,6 +49,8 @@ app.get('/facebook', function(req, res) {
 	  }
 	}catch(e){
 	  console.log('unknown error');
+		console.log('hub is');
+		console.log(req.params.hub);
 	  res.sendStatus(406);
 	}
 
