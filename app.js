@@ -34,6 +34,39 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
+app.get('/facebook', function(req, res) {
+	console.log("facebook webhook get called")
+  if (
+    req.param('hub.mode') == 'subscribe' &&
+    req.param('hub.verify_token') == 'morninng'
+  ) {
+  	console.log(req.param('hub.challenge'));
+    res.send(req.param('hub.challenge'));
+  } else {
+  	console.log('error is sent to facebook webhook');
+    res.send(400);
+  }
+});
+
+app.post('/facebook', function(req, res) {
+  console.log('Facebook webhook is called request body2:');
+  console.log(req);
+  console.log(req.headers);
+  var replace_obj = req;
+//  replace_obj.headers = null;
+  replace_obj.headers = "a";
+  console.log(replace_obj);
+  console.log(req.body);
+
+  res.send(200);
+  // Process the Facebook updates here
+  
+});
+
+
+
+
+
 var httpServer = https.createServer(credentials, app);
 
 var server = httpServer.listen(serverPort, function () {
