@@ -35,17 +35,22 @@ app.get('/', function (req, res) {
 });
 
 app.get('/facebook', function(req, res) {
-	console.log("facebook webhook get called")
-  if (
-    req.params.hub.mode == 'subscribe' &&
-    req.param.hub.verify_token == 'morninng'
-  ) {
-  	console.log(req.params.hub.challenge);
-    res.send(req.params.hub.challenge);
-  } else {
-  	console.log('error is sent to facebook webhook');
-    res.send(400);
-  }
+	console.log("facebook webhook get called");
+
+	try{
+	  if( req.params.hub.mode == 'subscribe' && req.param.hub.verify_token == 'morninng') {
+	  	console.log(req.params.hub.challenge);
+	    res.send(req.params.hub.challenge);
+	  } else {
+	  	console.log('token or mode does not match');
+	    res.send(400);
+	  }
+	}catch(e){
+	  console.log('unknown error');
+	  res.send(406);
+	}
+
+
 });
 
 app.post('/facebook', function(req, res) {
