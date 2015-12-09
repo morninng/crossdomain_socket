@@ -43,11 +43,13 @@ app.get('/facebook', function(req, res) {
 	    res.send(req.params.hub.challenge);
 	  } else {
 	  	console.log('token or mode does not match');
-	    res.send(400);
+	  	console.log('hub is');
+	  	console.log(req.params.hub);
+	    res.sendStatus(400);
 	  }
 	}catch(e){
 	  console.log('unknown error');
-	  res.send(406);
+	  res.sendStatus(406);
 	}
 
 
