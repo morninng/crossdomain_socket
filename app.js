@@ -47,6 +47,8 @@ var server = httpServer.listen(serverPort, function () {
 var io = require('socket.io').listen(server);
 io.sockets.setMaxListeners(0);
 
+
+
 (function(){
 
   var self = this;
@@ -58,6 +60,11 @@ io.sockets.setMaxListeners(0);
 
 	  socket.on('disconnect', function(){
 	    console.log('user disconnected');
+	  });
+
+	  socket.on('join_room', function(data){
+	  	socket.join(data.room_name);
+	    console.log('user join in the name room: ' + data.room_name);
 	  });
 
 		ss(socket).on('audio_record_start', function(stream, data){
@@ -121,6 +128,7 @@ io.sockets.setMaxListeners(0);
 			var outfile_name  = data.filename;
 			var role_name  = data.role_name;
 			var speech_transcript_id  = data.speech_transcript_id;
+			var room_name = data.room_name;
 			console.log("file name is " + outfile_name);
 			console.log("role name is " + role_name);
 			console.log(" speech transcription id is " + speech_transcript_id);
@@ -134,7 +142,7 @@ io.sockets.setMaxListeners(0);
 				console.log("file count is " + count );
 				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
 				setTimeout(function(){
-					transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name);
+					transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name, room_name);
 					eval(" delete self.file_writer_count_" + outfile_name );
 					eval(" delete self.record_start_time_" + outfile_name );
 				}, record_duration);
@@ -149,23 +157,16 @@ io.sockets.setMaxListeners(0);
 
 
 
-}());
 
 
 
-
-function transcode_file_upload_s3_command(file_name, count, speech_transcript_id, role_name ){
-
+self.transcode_file_upload_s3_command = function(file_name, count, speech_transcript_id, role_name , room_name)
+{
 
   console.log("transcode command is called");
-	// var source_file = './' + file_name + '.wav';
-
-
 	var dest_file = './public/audio/' + file_name + '.mp3';
 	var file_name_on_s3 = file_name + '.mp3';
-
 	var wstream = fs.createWriteStream(dest_file);
-	//var command = SoxCommand().input(source_file).output(wstream).outputFileType('mp3');
 	var command = SoxCommand().output(wstream).outputFileType('mp3');
 
 	var source_file_list = new Array();
@@ -195,7 +196,7 @@ function transcode_file_upload_s3_command(file_name, count, speech_transcript_id
 					if(data !==null){
 						console.log("succeed to save data on S3");
 
-						save_AudioInfo_onParse(file_name_on_s3, speech_transcript_id, role_name);
+						save_AudioInfo_onParse(file_name_on_s3, speech_transcript_id, role_name, room_name);
 
 					}else{
 						console.log("fai to save data" + error + data);
@@ -205,12 +206,11 @@ function transcode_file_upload_s3_command(file_name, count, speech_transcript_id
 		});
 
 	});
-
 	command.run();
 }
 
-
-function save_AudioInfo_onParse(file_name, speech_transcript_id , role_name){
+self.save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_name, room_name)
+{
 
 	var Speech_Transcription = Parse.Object.extend("Speech_Transcription");
 	var speech_tran_query = new Parse.Query(Speech_Transcription);
@@ -222,6 +222,7 @@ function save_AudioInfo_onParse(file_name, speech_transcript_id , role_name){
 				success: function(){
 					console.log("succeed to save data on parse");
 					console.log(audio_url);
+					self.io_namespace.to(room_name).emit('audio_saved', {file_saved: file_name});
 				},
 				error: function(){
 					console.log("fail to save data");
@@ -233,3 +234,10 @@ function save_AudioInfo_onParse(file_name, speech_transcript_id , role_name){
 		}
 	});
 }
+
+
+
+
+
+
+}());
