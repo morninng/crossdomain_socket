@@ -1,0 +1,75 @@
+
+
+<button onclick ="original_data_convert()"  >original </value>
+
+
+<button onclick ="new_data_convert()"  >new </value>
+
+<script>
+
+function original_data_convert(){
+
+
+	len = 40000;
+	double_len = 80000
+
+	var f32arr = new Float32Array(len);
+	for(var i=0; i<len; i++){
+		f32arr[i] = 0.01268
+	}
+
+
+
+var time_1 = (new Date).getTime();
+
+	var uint8_buf = new Uint8Array(double_len);
+	var int16_variable = new Int16Array(1);
+  for (var i=0; i< len; i++) {
+    int16_variable[0] = f32arr[i]*0x7FFF;    //convert to 16 bit PCM
+    uint8_buf[2*i] = int16_variable[0] & 0x00FF; //convert to uint8 for stream buffer
+    uint8_buf[2*i+1] = (int16_variable[0] & 0xFF00) >> 8;
+  }
+
+
+var time_2 = (new Date).getTime();
+
+console.log(time_2 - time_1)
+
+
+}
+
+function new_data_convert(){
+
+	len = 40000;
+	double_len = 80000
+
+	var f32arr = new Float32Array(len);
+	for(var i=0; i<len; i++){
+		f32arr[i] = 0.01268
+	}
+
+
+var time_1 = (new Date).getTime();
+
+  var buffer2 = new ArrayBuffer(double_len);
+	var view = new DataView(buffer2);
+	var int16_variable_2 = new Int16Array(1);
+
+  for (var i=0; i< len; i++) {
+  	int16_variable_2[0] = f32arr[i]*0x7FFF;    //convert to 16 bit PCM
+  	view.setInt16(i*2, int16_variable_2[0]);
+  }
+
+	var uint8_array = new Uint8Array(buffer2, 0, double_len);
+	var uint8_array_convert = new Uint8Array(double_len);
+	for(var i=0; i<len; i++){
+		uint8_array_convert[2*i] = uint8_array[2*i+1];
+		uint8_array_convert[2*i+1] = uint8_array[2*i];
+	}
+
+var time_2 = (new Date).getTime();
+
+console.log(time_2 - time_1)
+
+}
+</script>
