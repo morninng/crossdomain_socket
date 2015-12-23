@@ -91,6 +91,8 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("audio record start " + socket.id);
 			var outfile_name  = data.filename;
 			var record_start_time = Date.now();
+			console.log("audio record start at " + record_start_time + " socketid:" + socket.id);
+			loggerRequest.info("audio record start at " + record_start_time + " socketid:" + socket.id);
 
 			var sample_rate = data.sample_rate || 44100;
 			eval("self.file_writer_sample_rate_" + outfile_name + " = new Array()");
@@ -172,8 +174,13 @@ io.sockets.setMaxListeners(0);
 			}else{
 */
 			  var record_start_time = eval("self.record_start_time_" + outfile_name);
-				var record_duration = Date.now() - record_start_time;
+			  var audio_record_end_time = Date.now();
+				var record_duration = audio_record_end_time - record_start_time;
 				var count = eval("self.file_writer_count_" + outfile_name );
+				console.log("audio record start" + record_start_time);
+				loggerRequest.info("audio record start" + record_start_time);
+				console.log("audio record end" + audio_record_end_time);
+				loggerRequest.info("audio record end" + audio_record_end_time);
 				console.log("recording duration is " + record_duration + " msec");
 				loggerRequest.info("recording duration is " + record_duration + " msec");
 				console.log("file count is " + count );
