@@ -91,21 +91,24 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("audio record start " + socket.id);
 			var outfile_name  = data.filename;
 			var record_start_time = Date.now();
+
+			var sample_rate = data.sample_rate || 44100;
+			eval("self.file_writer_sample_rate_" + outfile_name + " = new Array()");
+			eval("self.file_writer_sample_rate_" + outfile_name + "[0]=" + sample_rate);
 			eval("self.file_writer_count_" + outfile_name + "=1");
 			eval("self.record_start_time_" + outfile_name + "=" + record_start_time);
 			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
 			console.log("output file name is " + outfile_name_wav);
 			loggerRequest.info("output file name is " + outfile_name_wav);
 
-			var sample_rate = data.sample_rate || 44100;
-			socket.file_writer = new Array();
-			socket.file_writer[0] = new wav.FileWriter(
+			//var file_writer = new Array();
+			var file_writer = new wav.FileWriter(
 			 outfile_name_wav,
 			 {channels:1,
 			  sampleRate:sample_rate,
 			  bitDepth:16}
 			);
-			stream.pipe(socket.file_writer[0]);
+			stream.pipe(file_writer);
 		});
 
 		ss(socket).on('audio_record_resume', function(stream, data){
@@ -122,30 +125,32 @@ io.sockets.setMaxListeners(0);
 			var next_count = prev_count + 1;
 			console.log("resume count is " + next_count);
 			loggerRequest.info("resume count is " + next_count);
+			var sample_rate = data.sample_rate || 44100;
+
 			eval("self.file_writer_count_" + outfile_name + "=next_count");
+			eval("self.file_writer_sample_rate" + outfile_name + "[" + next_count +"]=" + sample_rate);
 			var outfile_name_wav  = './public/audio/' +  outfile_name + "_" + String(next_count)  + ".wav";
 			console.log("output file name is " + outfile_name_wav);
 			loggerRequest.info("output file name is " + outfile_name_wav);
 
-			var sample_rate = data.sample_rate || 44100;
-			socket.file_writer = socket.file_writer || new Array();
-			socket.file_writer[next_count] = new wav.FileWriter(
+		//	var file_writer = socket.file_writer || new Array();
+			var file_writer = new wav.FileWriter(
 				 outfile_name_wav, 
 				 {channels:1,
 				  sampleRate:sample_rate,
 				  bitDepth:16}
 			);
-			stream.pipe(socket.file_writer[next_count]);
+			stream.pipe(file_writer);
 
 		});
 
 		socket.on('audio_record_suspend', function(data){
 			console.log("audio suspend " + socket.id);
 			loggerRequest.info("audio suspend " + socket.id);
-			if(socket.file_writer){
+	//		if(socket.file_writer){
 			//  socket.file_writer.end();
 			//  socket.file_writer = null;
-			}
+		//	}
 		});
 
 		socket.on('audio_record_end', function(data){
@@ -161,9 +166,11 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("role name is " + role_name);
 			console.log(" speech transcription id is " + speech_transcript_id);
 			loggerRequest.info(" speech transcription id is " + speech_transcript_id);
+/*
 			if(!socket.file_writer){
 				return;
 			}else{
+*/
 			  var record_start_time = eval("self.record_start_time_" + outfile_name);
 				var record_duration = Date.now() - record_start_time;
 				var count = eval("self.file_writer_count_" + outfile_name );
@@ -173,27 +180,59 @@ io.sockets.setMaxListeners(0);
 				loggerRequest.info("file count is " + count );
 				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
 				setTimeout(function(){
-					transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name, room_name);
+					convert_SampleRate_transcode_upload_S3(outfile_name, count, speech_transcript_id, role_name, room_name);
+			//		transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name, room_name);
 					eval(" delete self.file_writer_count_" + outfile_name );
 					eval(" delete self.record_start_time_" + outfile_name );
+					eval(" delete self.file_writer_sample_rate_" + outfile_name );
 				}, record_duration);
-
-
-
 			//  socket.file_writer.end();
 			//  socket.file_writer = null;
-			}
+//			}
 		});
 	});
 
 
-
-
-
-
-self.transcode_file_upload_s3_command = function(file_name, count, speech_transcript_id, role_name , room_name)
+var convert_SampleRate_transcode_upload_S3 = function(outfile_name, count, speech_transcript_id, role_name , room_name)
 {
+	console.log("convert_SampleRate_transcode_upload_S3 start");
+loggerRequest.info("convert_SampleRate_transcode_upload_S3 start");
+	var file_list_len = count;
+	for(var i=0; i< file_list_len; i++){
+//		var existing_file_name = './public/audio/' + outfile_name + "_"+ String(i+1) + '.wav';
+//		console.log(existing_file_name);
+		var each_sample_rate = eval("self.file_writer_sample_rate_" + outfile_name + "[" + i +"]");
+	//	if(each_sample_rate != 48000){
+			convert_sample_rate( outfile_name, i);
+	//	}
+	}
+	setTimeout(function(){
+		transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name, room_name);
+	}, 10000);
+}
 
+var convert_sample_rate = function( outfile_name, i){
+	var existing_file_name = './public/audio/' + outfile_name + "_"+ String(i+1) + '.wav';
+	var dest_file = './public/audio/' + outfile_name + "_"+ String(i+1) + "_convert.wav";
+	console.log("convert:" + existing_file_name);
+loggerRequest.info("convert:" + existing_file_name);
+	var wstream = fs.createWriteStream(dest_file);
+	var command = SoxCommand().output(wstream).outputFileType('wav').outputSampleRate(48000);
+	command.input(existing_file_name);
+	command.on('end', function() {
+		console.log("changing sample rate succeed:" + dest_file);
+loggerRequest.info("changing sample rate succeed:" + dest_file);
+	});
+	command.on('error', function(err, stdout, stderr) {
+		console.log("changing sample rate fail" + err + ":" + file_name);
+loggerRequest.info("changing sample rate fail" + err + ":" + file_name);
+	});
+	command.run();
+}
+
+
+var transcode_file_upload_s3_command = function(file_name, count, speech_transcript_id, role_name , room_name)
+{
   console.log("transcode command is called");
 	loggerRequest.info("transcode command is called");
 	var dest_file = './public/audio/' + file_name + '.mp3';
@@ -204,7 +243,7 @@ self.transcode_file_upload_s3_command = function(file_name, count, speech_transc
 	var source_file_list = new Array();
 	var file_list_len = count;
 	for(var i=0; i< file_list_len; i++){
-		var each_file_name = './public/audio/' + file_name + "_"+ String(i+1) + '.wav'
+		var each_file_name = './public/audio/' + file_name + "_"+ String(i+1) + "_convert.wav";
 		console.log(each_file_name);
 		loggerRequest.info(each_file_name);
 		command.input(each_file_name);
@@ -216,17 +255,13 @@ self.transcode_file_upload_s3_command = function(file_name, count, speech_transc
 	});
 	 
 	command.on('error', function(err, stdout, stderr) {
-	  console.log('Cannot process audio: ' + err.message);
-		loggerRequest.info('Cannot process audio: ' + err.message);
-	  console.log('Sox Command Stdout: ', stdout);
-		loggerRequest.info('Sox Command Stdout: ', stdout);
-	  console.log('Sox Command Stderr: ', stderr);
-		loggerRequest.info('Sox Command Stderr: ', stderr);
+	  console.log('transcode and connecting audio failed: ' + err);
+		loggerRequest.info('transcode and connecting audio failed: ' + err);
 	});
 	 
 	command.on('end', function() {
-	  console.log('Sox command succeeded!');
-		loggerRequest.info('Sox command succeeded!');
+	  console.log('transcode and connecting audio succeeded!');
+		loggerRequest.info('transcode and connecting audio succeeded!');
 	  wstream.end();
 		fs.readFile(dest_file, function (err, data) {
 			s3.putObject(
@@ -239,8 +274,8 @@ self.transcode_file_upload_s3_command = function(file_name, count, speech_transc
 						save_AudioInfo_onParse(file_name_on_s3, speech_transcript_id, role_name, room_name);
 
 					}else{
-						console.log("fai to save data" + error + data);
-						loggerRequest.info("fai to save data" + error + data);
+						console.log("fai to save data on S3" + error + data);
+						loggerRequest.info("fai to save data on S3" + error + data);
 					}
 				}
 			);
@@ -250,7 +285,7 @@ self.transcode_file_upload_s3_command = function(file_name, count, speech_transc
 	command.run();
 }
 
-self.save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_name, room_name)
+var save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_name, room_name)
 {
 
 	var Speech_Transcription = Parse.Object.extend("Speech_Transcription");
@@ -265,17 +300,18 @@ self.save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_na
 					loggerRequest.info("succeed to save data on parse");
 					console.log(audio_url);
 					loggerRequest.info(audio_url);
+					loggerRequest.info("----------------------");
 					self.io_namespace.to(room_name).emit('audio_saved', {file_saved: file_name});
 				},
 				error: function(){
-					console.log("fail to save data");
-					loggerRequest.info("fail to save data");
+					console.log("fail to save data on parse");
+					loggerRequest.info("fail to save data on parse");
 				}
 			});			
 		},
 		error: function(object, error) {
-			console.log("fail to save data on parse");
-			loggerRequest.info("fail to save data on parse");
+			console.log("fail to find data on parse");
+			loggerRequest.info("fail to find data on parse");
 		}
 	});
 }

@@ -22,3 +22,4 @@ config/mixidea.conf
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+logs/*
