@@ -174,6 +174,7 @@ io.sockets.setMaxListeners(0);
 				return;
 			}else{
 */
+
 			  var record_start_time = eval("GlobalInfo.record_start_time_" + outfile_name);
 			  var audio_record_end_time = Date.now();
 				var record_duration = audio_record_end_time - record_start_time;
@@ -226,7 +227,7 @@ var convert_sample_rate = function( outfile_name, i){
 	console.log("convert:" + existing_file_name);
 	loggerRequest.info("convert:" + existing_file_name);
 	var wstream = fs.createWriteStream(dest_file);
-	var command = SoxCommand().output(wstream).outputFileType('wav').outputSampleRate(48000);
+	var command = SoxCommand().output(wstream).outputFileType('wav').outputSampleRate(44100);
 	command.input(existing_file_name);
 	command.on('end', function() {
 		console.log("changing sample rate succeed:" + dest_file);
