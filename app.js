@@ -69,6 +69,7 @@ io.sockets.setMaxListeners(0);
 
   var self = this;
   self.io_namespace = io.of("/");
+  var GlobalInfo = new Object();
 
 	self.io_namespace.on('connection', function(socket){
 		console.log("connected");
@@ -95,10 +96,10 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("audio record start at " + record_start_time + " socketid:" + socket.id);
 
 			var sample_rate = data.sample_rate || 44100;
-			eval("self.file_writer_sample_rate_" + outfile_name + " = new Array()");
-			eval("self.file_writer_sample_rate_" + outfile_name + "[0]=" + sample_rate);
-			eval("self.file_writer_count_" + outfile_name + "=1");
-			eval("self.record_start_time_" + outfile_name + "=" + record_start_time);
+		//	eval("GlobalInfo.file_writer_sample_rate_" + outfile_name + " = new Array()");
+		//	eval("GlobalInfo.file_writer_sample_rate_" + outfile_name + "[0]=" + sample_rate);
+			eval("GlobalInfo.file_writer_count_" + outfile_name + "=1");
+			eval("GlobalInfo.record_start_time_" + outfile_name + "=" + record_start_time);
 			var outfile_name_wav  = './public/audio/' + outfile_name + "_1.wav";
 			console.log("output file name is " + outfile_name_wav);
 			loggerRequest.info("output file name is " + outfile_name_wav);
@@ -118,7 +119,7 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("audio record resume " + socket.id);
 
 			var outfile_name  = data.filename;
-			var prev_count = eval("self.file_writer_count_" + outfile_name );
+			var prev_count = eval("GlobalInfo.file_writer_count_" + outfile_name );
 
 			if(!prev_count){
 				return;
@@ -129,8 +130,8 @@ io.sockets.setMaxListeners(0);
 			loggerRequest.info("resume count is " + next_count);
 			var sample_rate = data.sample_rate || 44100;
 
-			eval("self.file_writer_count_" + outfile_name + "=next_count");
-			eval("self.file_writer_sample_rate" + outfile_name + "[" + next_count +"]=" + sample_rate);
+			eval("GlobalInfo.file_writer_count_" + outfile_name + "=next_count");
+//			eval("GlobalInfo.file_writer_sample_rate" + outfile_name + "[" + next_count +"]=" + sample_rate);
 			var outfile_name_wav  = './public/audio/' +  outfile_name + "_" + String(next_count)  + ".wav";
 			console.log("output file name is " + outfile_name_wav);
 			loggerRequest.info("output file name is " + outfile_name_wav);
@@ -173,25 +174,26 @@ io.sockets.setMaxListeners(0);
 				return;
 			}else{
 */
-			  var record_start_time = eval("self.record_start_time_" + outfile_name);
+			  var record_start_time = eval("GlobalInfo.record_start_time_" + outfile_name);
 			  var audio_record_end_time = Date.now();
 				var record_duration = audio_record_end_time - record_start_time;
-				var count = eval("self.file_writer_count_" + outfile_name );
-				console.log("audio record start" + record_start_time);
-				loggerRequest.info("audio record start" + record_start_time);
-				console.log("audio record end" + audio_record_end_time);
-				loggerRequest.info("audio record end" + audio_record_end_time);
+				var count = eval("GlobalInfo.file_writer_count_" + outfile_name );
+				console.log("audio record start " + record_start_time);
+				loggerRequest.info("audio record start " + record_start_time);
+				console.log("audio record end " + audio_record_end_time);
+				loggerRequest.info("audio record end " + audio_record_end_time);
 				console.log("recording duration is " + record_duration + " msec");
 				loggerRequest.info("recording duration is " + record_duration + " msec");
 				console.log("file count is " + count );
 				loggerRequest.info("file count is " + count );
-				//setTimeout("self.record_end_action(outfile_name, count)", record_duration);
+				eval(" delete GlobalInfo.file_writer_count_" + outfile_name );
+				eval(" delete GlobalInfo.record_start_time_" + outfile_name );
+				//setTimeout("GlobalInfo.record_end_action(outfile_name, count)", record_duration);
 				setTimeout(function(){
 					convert_SampleRate_transcode_upload_S3(outfile_name, count, speech_transcript_id, role_name, room_name);
 			//		transcode_file_upload_s3_command(outfile_name, count, speech_transcript_id, role_name, room_name);
-					eval(" delete self.file_writer_count_" + outfile_name );
-					eval(" delete self.record_start_time_" + outfile_name );
-					eval(" delete self.file_writer_sample_rate_" + outfile_name );
+	
+			//		eval(" delete GlobalInfo.file_writer_sample_rate_" + outfile_name );
 				}, record_duration);
 			//  socket.file_writer.end();
 			//  socket.file_writer = null;
@@ -203,14 +205,14 @@ io.sockets.setMaxListeners(0);
 var convert_SampleRate_transcode_upload_S3 = function(outfile_name, count, speech_transcript_id, role_name , room_name)
 {
 	console.log("convert_SampleRate_transcode_upload_S3 start");
-loggerRequest.info("convert_SampleRate_transcode_upload_S3 start");
+	loggerRequest.info("convert_SampleRate_transcode_upload_S3 start");
 	var file_list_len = count;
 	for(var i=0; i< file_list_len; i++){
 //		var existing_file_name = './public/audio/' + outfile_name + "_"+ String(i+1) + '.wav';
 //		console.log(existing_file_name);
-		var each_sample_rate = eval("self.file_writer_sample_rate_" + outfile_name + "[" + i +"]");
+	//	var each_sample_rate = eval("GlobalInfo.file_writer_sample_rate_" + outfile_name + "[" + i +"]");
 	//	if(each_sample_rate != 48000){
-			convert_sample_rate( outfile_name, i);
+		convert_sample_rate( outfile_name, i);
 	//	}
 	}
 	setTimeout(function(){
@@ -222,17 +224,17 @@ var convert_sample_rate = function( outfile_name, i){
 	var existing_file_name = './public/audio/' + outfile_name + "_"+ String(i+1) + '.wav';
 	var dest_file = './public/audio/' + outfile_name + "_"+ String(i+1) + "_convert.wav";
 	console.log("convert:" + existing_file_name);
-loggerRequest.info("convert:" + existing_file_name);
+	loggerRequest.info("convert:" + existing_file_name);
 	var wstream = fs.createWriteStream(dest_file);
 	var command = SoxCommand().output(wstream).outputFileType('wav').outputSampleRate(48000);
 	command.input(existing_file_name);
 	command.on('end', function() {
 		console.log("changing sample rate succeed:" + dest_file);
-loggerRequest.info("changing sample rate succeed:" + dest_file);
+		loggerRequest.info("changing sample rate succeed:" + dest_file);
 	});
 	command.on('error', function(err, stdout, stderr) {
 		console.log("changing sample rate fail" + err + ":" + file_name);
-loggerRequest.info("changing sample rate fail" + err + ":" + file_name);
+		loggerRequest.info("changing sample rate fail" + err + ":" + file_name);
 	});
 	command.run();
 }
@@ -328,4 +330,4 @@ var save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_nam
 
 
 
-}());
+} ());
