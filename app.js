@@ -310,7 +310,7 @@ var save_AudioInfo_onParse = function(file_name, speech_transcript_id , role_nam
 					console.log(audio_url);
 					loggerRequest.info(audio_url);
 					loggerRequest.info("----------------------");
-					self.io_namespace.to(room_name).emit('audio_saved', {file_saved: file_name});
+					self.io_namespace.to(room_name).emit('audio_saved', {file_saved: audio_url});
 				},
 				error: function(){
 					console.log("fail to save data on parse");
